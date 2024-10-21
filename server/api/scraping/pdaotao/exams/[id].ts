@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 	// console.log(id);
 	if (event.node.req.method === "POST") {
 		const body = await readBody(event);
-		console.log("Dữ liệu nhận được:", body);
+		// console.log("Dữ liệu nhận được:", body);
 		const data = await getFile(body.url);
 		return {
 			success: true,

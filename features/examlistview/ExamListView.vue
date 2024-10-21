@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { DocumentArrowDownIcon, SparklesIcon } from "@heroicons/vue/24/solid";
+import { useToast } from "@/components/ui/toast/use-toast";
+const { toast } = useToast();
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -13,6 +15,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
+import { ToastClose } from "radix-vue";
 
 export interface Exams {
   text: string;
@@ -29,6 +32,13 @@ type FetchResponse = {
   };
   message: string;
 };
+
+const isMounted = ref(false);
+const exams = ref<Exams[]>([]);
+const examsNew = ref<Exams[]>([]);
+const examsOld = ref<Exams[]>([]);
+const isFetching = ref<Boolean>(false);
+const isDownloading = ref<Boolean>(false);
 
 async function fetchPage(
   nextPage: string,
@@ -78,11 +88,7 @@ let nextPagination = ref<{
   currentPage: 1,
   nextPage: null,
 });
-const isMounted = ref(false);
-const exams = ref<Exams[]>([]);
-const examsNew = ref<Exams[]>([]);
-const examsOld = ref<Exams[]>([]);
-const isFetching = ref<Boolean>(false);
+
 // console.log("exams", fetchedData);
 
 const fetchMore = async (isChecked: boolean) => {
@@ -160,14 +166,20 @@ const columns: ColumnDef<Exams>[] = [
     header: "Tải xuống",
     cell: ({ row }) => {
       const handleClick = async () => {
-        console.log("Downloading from:", row.original.href);
+        const msg = toast({
+          title: "Đang gửi yêu cầu",
+          description: "Vui lòng chờ trong giây lát",
+        });
+
+        isDownloading.value = true;
+        // console.log("Downloading from:", row.original.href);
         const match = /ID=(\d+)/.exec(row.original.href);
         let id = "";
 
         if (match) {
-          id = match[1]; //
+          id = match[1];
         } else {
-          id = "000000"; // ID id default
+          id = "000000";
           console.error("Cannot found href.");
         }
 
@@ -176,6 +188,7 @@ const columns: ColumnDef<Exams>[] = [
           body: JSON.stringify({ url: row.original.href }),
         });
         const data = response?.data;
+
         if (data?.url) {
           const link = data.url;
 
@@ -185,6 +198,8 @@ const columns: ColumnDef<Exams>[] = [
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
+          isDownloading.value = false;
+          msg.dismiss();
         }
       };
       return h(
@@ -245,6 +260,21 @@ const table = useVueTable({
 </script>
 
 <template>
+  <!-- <div -->
+  <!--   v-if="isDownloading" -->
+  <!--   class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 dark:bg-white dark:bg-opacity-50" -->
+  <!-- > -->
+  <!--   <div class="flex-col gap-4 w-full flex items-center justify-center"> -->
+  <!--     <div -->
+  <!--       class="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full" -->
+  <!--     > -->
+  <!--       <div -->
+  <!--         class="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" -->
+  <!--       ></div> -->
+  <!--     </div> -->
+  <!--   </div> -->
+  <!-- </div> -->
+
   <div v-if="!isMounted || exams.length <= 0">
     <ExamListViewLoading />
   </div>
