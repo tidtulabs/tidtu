@@ -45,7 +45,7 @@ const cards = ref([
           >
         </CardHeader>
         <CardContent> {{ card.content }} </CardContent>
-        <NuxtLink :to="card.href" target="_blank">
+        <NuxtLink :to="card.href">
           <CardFooter>
             <Button>
               {{ card.footer }}
