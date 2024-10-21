@@ -245,7 +245,7 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div v-if="!isMounted && exams.values.length <= 0">
+  <div v-if="!isMounted || exams.length <= 0">
     <ExamListViewLoading />
   </div>
   <div v-else class="flex-1 flex flex-col gap-5">
