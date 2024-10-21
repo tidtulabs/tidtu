@@ -14,11 +14,11 @@ const toggleColorMode = () => {
   <div class="flex w-full justify-between items-center">
     <NuxtLink to="/" class="flex items-center gap-1">
       <Logo />
-      <h1 class="font-bold md:text-2xl text-base">TIDTU</h1>
+      <h1 class="font-bold md:text-2xl text-xl">TIDTU</h1>
     </NuxtLink>
     <div class="flex gap-2 items-center">
       <h3
-        class="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-indigo-600"
+        class="text-sm font-medium bg-clip-text text-transparent hidden sm:block bg-gradient-to-r from-rose-500 to-indigo-600"
       >
         by ngtuonghy
       </h3>
