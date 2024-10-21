@@ -14,7 +14,7 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 
-export interface Payment {
+export interface Exams {
   text: string;
   dateUpload: string;
   href: string;
@@ -23,54 +23,83 @@ export interface Payment {
 type FetchResponse = {
   success: boolean;
   response: {
-    data: Payment[];
-    last_pagination: string;
+    data: Exams[];
+    is_new: boolean;
+    next_pagination: string;
   };
   message: string;
 };
 
-const { status, data: fetchedData } = await useLazyFetch<FetchResponse>(
-  "/api/scraping/pdaotao/exams?takeOld=false",
-);
+async function fetchPage(
+  nextPage: string,
+  takeOld: boolean = false,
+  exCache: Ref<Exams[]>,
+) {
+  const data = await $fetch<FetchResponse>(
+    `/api/scraping/pdaotao/exams${nextPage ? `?next_pagination=${nextPage}` : ""}`,
+  );
+  isFetching.value = true;
+  // console.log("nextPageData", data);
+  if (data.success) {
+    exams.value = [...exams.value, ...data.response.data];
+    exCache.value = [...exCache.value, ...data.response.data];
+  }
 
-watch(fetchedData, (newData) => {
-  if (newData)
-    if (newData?.success) {
-      exams.value = newData.response.data;
-    } else {
-      console.error(newData.message);
+  if (data.response.next_pagination !== "") {
+    if (
+      takeOld ||
+      (!takeOld && data.response.is_new) ||
+      nextPagination.value.currentPage < 5
+    ) {
+      // console.log(data);
+      nextPagination.value.nextPage = data.response.next_pagination;
+      nextPagination.value.currentPage += 1;
+      await fetchPage(data.response.next_pagination, takeOld, exCache);
     }
+  } else {
+    nextPagination.value.nextPage = null;
+  }
+
+  isFetching.value = false;
+}
+
+onMounted(async () => {
+  fetchPage("", false, examsNew);
+  isMounted.value = true;
+  // console.log("mounted");
+  updateColumnVisibility();
+  window.addEventListener("resize", updateColumnVisibility);
 });
 
-const exams = ref<Payment[]>(fetchedData.value?.response.data ?? []);
-const examsOld = ref<Payment[]>([]);
+let nextPagination = ref<{
+  currentPage: number;
+  nextPage: string | null;
+}>({
+  currentPage: 1,
+  nextPage: null,
+});
+const isMounted = ref(false);
+const exams = ref<Exams[]>([]);
+const examsNew = ref<Exams[]>([]);
+const examsOld = ref<Exams[]>([]);
+const isFetching = ref<Boolean>(false);
 // console.log("exams", fetchedData);
 
-let isLoading = ref<Boolean>(false);
-
 const fetchMore = async (isChecked: boolean) => {
-  isLoading.value = true;
+  // console.log("start", examsNew.value);
   if (isChecked) {
     if (examsOld.value.length > 0) {
       exams.value = [...exams.value, ...examsOld.value];
-      isLoading.value = false;
-      return;
     } else {
-      const lastPagination = fetchedData.value?.response.last_pagination;
-      const { data } = await useLazyFetch<FetchResponse>(
-        `/api/scraping/pdaotao/exams?takeOld=true${lastPagination ? `&last_pagination=${lastPagination}` : ""}`,
-      );
-      if (data.value?.success) {
-        examsOld.value = data.value.response.data;
-        exams.value = [...exams.value, ...examsOld.value];
-        isLoading.value = false;
-      } else {
-        isLoading.value = false;
+      // console.log("fetching more", nextPagination);
+      if (nextPagination.value.nextPage) {
+        await fetchPage(nextPagination.value.nextPage, true, examsOld);
+        // console.log("end", examsNew.value);
       }
     }
   } else {
-    exams.value = fetchedData.value?.response.data ?? [];
-    isLoading.value = false;
+    // console.log("examsNew", examsNew.value);
+    exams.value = [...examsNew.value];
   }
 };
 
@@ -97,13 +126,7 @@ const updateColumnVisibility = () => {
   }
 };
 
-onMounted(() => {
-  // console.log("mounted");
-  updateColumnVisibility();
-  window.addEventListener("resize", updateColumnVisibility);
-});
-
-const columns: ColumnDef<Payment>[] = [
+const columns: ColumnDef<Exams>[] = [
   {
     accessorKey: "dateUpload",
     header: "Ngày tải lên",
@@ -219,16 +242,10 @@ const table = useVueTable({
     },
   },
 });
-
-const isMounted = ref(false);
-
-onMounted(() => {
-  isMounted.value = true;
-});
 </script>
 
 <template>
-  <div v-if="status === 'pending'">
+  <div v-if="!isMounted">
     <ExamListViewLoading />
   </div>
   <div v-else class="flex-1 flex flex-col gap-5">
@@ -260,25 +277,21 @@ onMounted(() => {
         </svg>
       </span>
     </div>
-    <TooltipProvider v-if="isMounted">
-      <Tooltip>
-        <TooltipTrigger class="flex items-center w-fit gap-3">
-          <Switch
-            @update:checked="fetchMore"
-            id="term"
-            class="dark:text-white"
-          />
-          <Label for="term">Tất cả</Label>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Bật để lấy tất cả trang</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    <div v-if="isLoading">
-      <ExamListViewLoading :isShowHeader="false" />
+    <div class="flex gap-3">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger class="flex items-center w-fit gap-3">
+            <Switch id="term" @update:checked="fetchMore" />
+            <Label for="term">Tất cả</Label>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Bật để lấy tất cả trang</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <p>({{ nextPagination.currentPage }} trang đã được tải)</p>
     </div>
-    <Table v-else>
+    <Table>
       <TableHeader>
         <TableRow
           v-for="headerGroup in table.getHeaderGroups()"
@@ -320,5 +333,8 @@ onMounted(() => {
         </template>
       </TableBody>
     </Table>
+    <div v-if="isFetching">
+      <ExamListViewLoading :isShowHeader="false" />
+    </div>
   </div>
 </template>
