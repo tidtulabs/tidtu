@@ -73,6 +73,13 @@ module.exports = {
 					from: { height: "var(--radix-collapsible-content-height)" },
 					to: { height: 0 },
 				},
+				move: {
+					"0%": { transform: "translateX(-100%)" },
+					"25%": { transform: "translateX(0%)" },
+					"50%": { transform: "translateX(50%)" },
+					"75%": { transform: "translateX(100%)" },
+					"100%": { transform: "translateX(-100%)" },
+				},
 			},
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
@@ -80,9 +87,9 @@ module.exports = {
 				"collapsible-down": "collapsible-down 0.2s ease-in-out",
 				"collapsible-up": "collapsible-up 0.2s ease-in-out",
 				"spin-slow": "spin 10s linear infinite",
+				move: "move 5s ease-in-out infinite",
 			},
 		},
 	},
 	plugins: [animate],
 };
-

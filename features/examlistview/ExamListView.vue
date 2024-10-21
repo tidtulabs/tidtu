@@ -15,7 +15,6 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { ToastClose } from "radix-vue";
 
 export interface Exams {
   text: string;
@@ -39,38 +38,70 @@ const examsNew = ref<Exams[]>([]);
 const examsOld = ref<Exams[]>([]);
 const isFetching = ref<Boolean>(false);
 const isDownloading = ref<Boolean>(false);
+const nextPagination = ref<{
+  currentPage: number;
+  nextPage: string | null;
+}>({
+  currentPage: 1,
+  nextPage: null,
+});
 
+const abortController = ref<AbortController | null>(null); // Tạo một AbortControll
 async function fetchPage(
   nextPage: string,
   takeOld: boolean = false,
   exCache: Ref<Exams[]>,
 ) {
-  const data = await $fetch<FetchResponse>(
-    `/api/scraping/pdaotao/exams${nextPage ? `?next_pagination=${nextPage}` : ""}`,
-  );
-  isFetching.value = true;
-  // console.log("nextPageData", data);
-  if (data.success) {
-    exams.value = [...exams.value, ...data.response.data];
-    exCache.value = [...exCache.value, ...data.response.data];
+  if (abortController.value) {
+    abortController.value.abort();
   }
 
-  if (data.response.next_pagination !== "") {
-    if (
-      takeOld ||
-      (!takeOld && data.response.is_new) ||
-      nextPagination.value.currentPage < 5
-    ) {
-      // console.log(data);
-      nextPagination.value.nextPage = data.response.next_pagination;
-      nextPagination.value.currentPage += 1;
-      await fetchPage(data.response.next_pagination, takeOld, exCache);
+  abortController.value = new AbortController();
+  const signal = abortController.value.signal;
+  try {
+    const data = await $fetch<FetchResponse>(
+      `/api/scraping/pdaotao/exams${nextPage ? `?next_pagination=${nextPage}` : ""}`,
+      {
+        signal,
+      },
+    );
+
+    isFetching.value = true;
+    // console.log("nextPageData", data);
+    if (data.success) {
+      exams.value = [...exams.value, ...data.response.data];
+      exCache.value = [...exCache.value, ...data.response.data];
     }
-  } else {
-    nextPagination.value.nextPage = null;
-  }
 
-  isFetching.value = false;
+    if (data.response.next_pagination !== "") {
+      if (
+        takeOld ||
+        (!takeOld && data.response.is_new) ||
+        nextPagination.value.currentPage < 5
+      ) {
+        // console.log(data);
+        nextPagination.value.nextPage = data.response.next_pagination;
+        nextPagination.value.currentPage += 1;
+        await fetchPage(data.response.next_pagination, takeOld, exCache);
+      }
+    } else {
+      nextPagination.value.nextPage = null;
+    }
+  } catch (error: any) {
+    if (error.name === "FetchError") {
+      console.info("cancel fetch");
+    } else {
+      console.error("Fetch error:", error);
+    }
+  } finally {
+    isFetching.value = false;
+    abortController.value = null; // Reset lại AbortController khi hoàn thành
+  }
+}
+function cancelFetch() {
+  if (abortController.value) {
+    abortController.value.abort();
+  }
 }
 
 onMounted(async () => {
@@ -81,31 +112,24 @@ onMounted(async () => {
   window.addEventListener("resize", updateColumnVisibility);
 });
 
-let nextPagination = ref<{
-  currentPage: number;
-  nextPage: string | null;
-}>({
-  currentPage: 1,
-  nextPage: null,
-});
-
 // console.log("exams", fetchedData);
 
 const fetchMore = async (isChecked: boolean) => {
   // console.log("start", examsNew.value);
   if (isChecked) {
-    if (examsOld.value.length > 0) {
-      exams.value = [...exams.value, ...examsOld.value];
-    } else {
-      // console.log("fetching more", nextPagination);
-      if (nextPagination.value.nextPage) {
-        await fetchPage(nextPagination.value.nextPage, true, examsOld);
-        // console.log("end", examsNew.value);
-      }
+    // if (examsOld.value.length > 0 && nextPagination.value.nextPage === null) {
+    //   exams.value = [...exams.value, ...examsOld.value];
+    // } else {
+    // console.log("fetching more", nextPagination);
+    if (nextPagination.value.nextPage) {
+      await fetchPage(nextPagination.value.nextPage, true, examsOld);
+      // console.log("end", examsNew.value);
+      // }
     }
   } else {
-    // console.log("examsNew", examsNew.value);
-    exams.value = [...examsNew.value];
+    // console.log("cancelFetch");
+    // console.log("examsNew", nextPagination);
+    cancelFetch();
   }
 };
 
@@ -260,21 +284,6 @@ const table = useVueTable({
 </script>
 
 <template>
-  <!-- <div -->
-  <!--   v-if="isDownloading" -->
-  <!--   class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 dark:bg-white dark:bg-opacity-50" -->
-  <!-- > -->
-  <!--   <div class="flex-col gap-4 w-full flex items-center justify-center"> -->
-  <!--     <div -->
-  <!--       class="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full" -->
-  <!--     > -->
-  <!--       <div -->
-  <!--         class="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" -->
-  <!--       ></div> -->
-  <!--     </div> -->
-  <!--   </div> -->
-  <!-- </div> -->
-
   <div v-if="!isMounted || exams.length <= 0">
     <ExamListViewLoading />
   </div>
@@ -311,7 +320,11 @@ const table = useVueTable({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger class="flex items-center w-fit gap-3">
-            <Switch id="term" @update:checked="fetchMore" />
+            <Switch
+              id="term"
+              @update:checked="fetchMore"
+              :disabled="nextPagination.nextPage === null"
+            />
             <Label for="term">Tất cả</Label>
           </TooltipTrigger>
           <TooltipContent>
@@ -319,7 +332,22 @@ const table = useVueTable({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <p>({{ nextPagination.currentPage }} trang đã được tải)</p>
+      <div class="relative">
+        <p>({{ nextPagination.currentPage }} trang đã được tải)</p>
+        <span
+          v-if="isFetching"
+          class="absolute flex h-3 w-3 top-[-10px] right-0"
+        >
+          <span
+            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
+          ></span>
+          <span
+            class="relative inline-flex rounded-full h-3 w-3 bg-primary"
+          ></span>
+        </span>
+
+        <!-- <div class="absolute w-5/12 h-1 bg-primary rounded-full animate-move" /> -->
+      </div>
     </div>
     <Table>
       <TableHeader>
@@ -329,7 +357,7 @@ const table = useVueTable({
         >
           <TableHead
             :class="[
-              'font-bold text-primary',
+              'font-bold text-primary ',
               header.column.id === 'href' ? 'text-center' : 'text-left',
             ]"
             v-for="header in headerGroup.headers"
