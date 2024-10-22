@@ -10,15 +10,15 @@ export default defineNuxtConfig({
 		"@nuxtjs/tailwindcss",
 		"shadcn-nuxt",
 		"nuxt-svgo-loader",
-		"@nuxtjs/google-adsense",
+		[
+			"@nuxtjs/google-adsense",
+			{
+				id: "ca-pub-9939590576700020",
+				onPageLoad: true,
+				test: false,
+			},
+		],
 	],
-
-	publicRuntimeConfig: {
-		googleAdsense: {
-			id: process.env.GOOGLE_ADSENSE_ID,
-			test: process.env.GOOGLE_ADSENSE_TEST_MODE === "true",
-		},
-	},
 
 	components: [
 		{
