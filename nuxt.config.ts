@@ -6,7 +6,19 @@ export default defineNuxtConfig({
 	},
 	css: ["~/assets/css/main.css"],
 	devtools: { enabled: true },
-	modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt", "nuxt-svgo-loader"],
+	modules: [
+		"@nuxtjs/tailwindcss",
+		"shadcn-nuxt",
+		"nuxt-svgo-loader",
+		"@nuxtjs/google-adsense",
+	],
+
+	publicRuntimeConfig: {
+		googleAdsense: {
+			id: process.env.GOOGLE_ADSENSE_ID,
+			test: process.env.GOOGLE_ADSENSE_TEST_MODE === "true",
+		},
+	},
 
 	components: [
 		{
@@ -19,4 +31,3 @@ export default defineNuxtConfig({
 		},
 	],
 });
-

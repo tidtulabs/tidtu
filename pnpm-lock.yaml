@@ -11,6 +11,9 @@ importers:
       '@heroicons/vue':
         specifier: ^2.1.5
         version: 2.1.5(vue@3.5.12(typescript@5.6.3))
+      '@nuxtjs/google-adsense':
+        specifier: ^3.0.0
+        version: 3.0.0(magicast@0.3.5)(rollup@4.24.0)(vue@3.5.12(typescript@5.6.3))
       '@tanstack/vue-table':
         specifier: ^8.20.5
         version: 8.20.5(vue@3.5.12(typescript@5.6.3))
@@ -792,6 +795,9 @@ packages:
     engines: {node: ^14.18.0 || >=16.10.0}
     peerDependencies:
       vue: ^3.3.4
+
+  '@nuxtjs/google-adsense@3.0.0':
+    resolution: {integrity: sha512-fR1rbj6mnfBCWMkVSocPUYX11rGzTwSs1v2sajG6wtXGjXLGRjJSFKSynYHdwO3V4o4xRvtve0W/Db96eiTKmA==}
 
   '@nuxtjs/tailwindcss@6.12.2':
     resolution: {integrity: sha512-qPJiFH67CkTj/2kBGBzqXihOD1rQXMsbVS4vdQvfBxOBLPfGhU1yw7AATdhPl2BBjO2krjJLuZj39t7dnDYOwg==}
@@ -4503,6 +4509,19 @@ snapshots:
       - vls
       - vti
       - vue-tsc
+      - webpack-sources
+
+  '@nuxtjs/google-adsense@3.0.0(magicast@0.3.5)(rollup@4.24.0)(vue@3.5.12(typescript@5.6.3))':
+    dependencies:
+      '@nuxt/kit': 3.13.2(magicast@0.3.5)(rollup@4.24.0)
+      '@vueuse/core': 10.11.1(vue@3.5.12(typescript@5.6.3))
+      defu: 6.1.4
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - magicast
+      - rollup
+      - supports-color
+      - vue
       - webpack-sources
 
   '@nuxtjs/tailwindcss@6.12.2(magicast@0.3.5)(rollup@4.24.0)':
