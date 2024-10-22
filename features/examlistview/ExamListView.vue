@@ -347,7 +347,9 @@ const table = useVueTable({
             <Switch
               id="term"
               @update:checked="fetchMore"
-              :disabled="nextPagination.nextPage === null"
+              :disabled="
+                nextPagination.nextPage === null || fetchingFlag.isAuto
+              "
             />
             <Label for="term">Tất cả</Label>
           </TooltipTrigger>

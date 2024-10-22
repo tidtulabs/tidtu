@@ -34,7 +34,11 @@ const cards = ref([
       </h1>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 xl:grid-cols-2">
-      <Card class="flex-1 hover:border-primary border" v-for="card in cards">
+      <Card
+        class="flex-1 hover:border-primary border"
+        v-for="(card, index) in cards"
+        :key="index"
+      >
         <CardHeader>
           <CardTitle>
             <component :is="card.title" class="w-10 h-10 text-primary" />
