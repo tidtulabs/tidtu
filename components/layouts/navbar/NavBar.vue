@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import {
-  ListBulletIcon,
-  BookOpenIcon,
-  InformationCircleIcon,
-} from "@heroicons/vue/24/outline";
+import { BookOpenIcon } from "@heroicons/vue/24/outline";
 const router = useRouter();
 
 const navItems = [

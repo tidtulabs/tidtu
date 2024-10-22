@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { DocumentArrowDownIcon, SparklesIcon } from "@heroicons/vue/24/solid";
+import {
+  DocumentArrowDownIcon,
+  SparklesIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/vue/24/outline";
 import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
 import type {
@@ -36,7 +40,10 @@ const isMounted = ref(false);
 const exams = ref<Exams[]>([]);
 const examsNew = ref<Exams[]>([]);
 const examsOld = ref<Exams[]>([]);
-const isFetching = ref<Boolean>(false);
+const fetchingFlag = ref<{ isAuto: boolean; isFetching: boolean }>({
+  isAuto: false,
+  isFetching: false,
+});
 const isDownloading = ref<Boolean>(false);
 const nextPagination = ref<{
   currentPage: number;
@@ -45,13 +52,24 @@ const nextPagination = ref<{
   currentPage: 1,
   nextPage: null,
 });
+const abortController = ref<AbortController | null>(null);
+const isFetchSystem = ref(true);
 
-const abortController = ref<AbortController | null>(null); // Tạo một AbortControll
+const FETCH_MORE = 5;
+
 async function fetchPage(
   nextPage: string,
   takeOld: boolean = false,
   exCache: Ref<Exams[]>,
+  shouldFetch: number = 0,
 ) {
+  if (!takeOld) {
+    fetchingFlag.value.isAuto = true;
+  } else {
+    fetchingFlag.value.isAuto = false;
+  }
+  fetchingFlag.value.isFetching = true;
+
   if (abortController.value) {
     abortController.value.abort();
   }
@@ -66,7 +84,6 @@ async function fetchPage(
       },
     );
 
-    isFetching.value = true;
     // console.log("nextPageData", data);
     if (data.success) {
       exams.value = [...exams.value, ...data.response.data];
@@ -77,14 +94,22 @@ async function fetchPage(
       if (
         takeOld ||
         (!takeOld && data.response.is_new) ||
-        nextPagination.value.currentPage < 5
+        shouldFetch < FETCH_MORE
       ) {
-        // console.log(data);
         nextPagination.value.nextPage = data.response.next_pagination;
         nextPagination.value.currentPage += 1;
-        await fetchPage(data.response.next_pagination, takeOld, exCache);
+        if (!data.response.is_new && !takeOld) {
+          shouldFetch += 1;
+        }
+        await fetchPage(
+          data.response.next_pagination,
+          takeOld,
+          exCache,
+          shouldFetch,
+        );
       }
     } else {
+      isFetchSystem.value = false;
       nextPagination.value.nextPage = null;
     }
   } catch (error: any) {
@@ -94,8 +119,9 @@ async function fetchPage(
       console.error("Fetch error:", error);
     }
   } finally {
-    isFetching.value = false;
-    abortController.value = null; // Reset lại AbortController khi hoàn thành
+    fetchingFlag.value.isAuto = false;
+    fetchingFlag.value.isFetching = false;
+    abortController.value = null;
   }
 }
 function cancelFetch() {
@@ -112,23 +138,12 @@ onMounted(async () => {
   window.addEventListener("resize", updateColumnVisibility);
 });
 
-// console.log("exams", fetchedData);
-
 const fetchMore = async (isChecked: boolean) => {
-  // console.log("start", examsNew.value);
   if (isChecked) {
-    // if (examsOld.value.length > 0 && nextPagination.value.nextPage === null) {
-    //   exams.value = [...exams.value, ...examsOld.value];
-    // } else {
-    // console.log("fetching more", nextPagination);
     if (nextPagination.value.nextPage) {
       await fetchPage(nextPagination.value.nextPage, true, examsOld);
-      // console.log("end", examsNew.value);
-      // }
     }
   } else {
-    // console.log("cancelFetch");
-    // console.log("examsNew", nextPagination);
     cancelFetch();
   }
 };
@@ -215,7 +230,6 @@ const columns: ColumnDef<Exams>[] = [
 
         if (data?.url) {
           const link = data.url;
-
           const a = document.createElement("a");
           a.href = link;
           a.download = "";
@@ -224,6 +238,15 @@ const columns: ColumnDef<Exams>[] = [
           document.body.removeChild(a);
           isDownloading.value = false;
           msg.dismiss();
+        }
+        if (!response?.success) {
+          isDownloading.value = false;
+          msg.dismiss();
+          toast({
+            title: "Lỗi",
+            description: response.message,
+            variant: "default",
+          });
         }
       };
       return h(
@@ -316,7 +339,8 @@ const table = useVueTable({
         </svg>
       </span>
     </div>
-    <div class="flex gap-3">
+
+    <div class="flex gap-3 items-center">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger class="flex items-center w-fit gap-3">
@@ -335,20 +359,39 @@ const table = useVueTable({
       <div class="relative">
         <p>({{ nextPagination.currentPage }} trang đã được tải)</p>
         <span
-          v-if="isFetching"
+          v-if="fetchingFlag.isFetching"
           class="absolute flex h-3 w-3 top-[-10px] right-0"
         >
           <span
-            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
+            class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            :class="[fetchingFlag.isAuto ? 'bg-primary' : 'bg-blue-500']"
           ></span>
           <span
-            class="relative inline-flex rounded-full h-3 w-3 bg-primary"
+            class="relative inline-flex rounded-full h-3 w-3"
+            :class="[fetchingFlag.isAuto ? 'bg-primary' : 'bg-blue-500']"
           ></span>
         </span>
-
-        <!-- <div class="absolute w-5/12 h-1 bg-primary rounded-full animate-move" /> -->
       </div>
+      <Popover>
+        <PopoverTrigger>
+          <QuestionMarkCircleIcon class="w-5 h-5 text-primary" />
+        </PopoverTrigger>
+        <PopoverContent>
+          <p>
+            Theo mặc định hệ thống tự tải những danh sách mới nhất và thêm 5
+            trang
+          </p>
+          <p>
+            <span class="text-primary">Màu đỏ</span> Hệ thống đang tự tải trang
+          </p>
+          <p>
+            <span class="text-blue-500">Màu xanh biển</span> Chức năng lấy tất
+            đang được bật
+          </p>
+        </PopoverContent>
+      </Popover>
     </div>
+
     <Table>
       <TableHeader>
         <TableRow
@@ -391,7 +434,8 @@ const table = useVueTable({
         </template>
       </TableBody>
     </Table>
-    <div v-if="isFetching">
+
+    <div v-if="fetchingFlag.isFetching">
       <ExamListViewLoading :isShowHeader="false" />
     </div>
   </div>
