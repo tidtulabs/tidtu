@@ -10,6 +10,7 @@ export default defineNuxtConfig({
 		"@nuxtjs/tailwindcss",
 		"shadcn-nuxt",
 		"nuxt-svgo-loader",
+		"nuxt-gtag",
 		[
 			"@nuxtjs/google-adsense",
 			{
@@ -18,12 +19,9 @@ export default defineNuxtConfig({
 				test: false,
 			},
 		],
-
-		"nuxt-gtag",
 	],
 	gtag: {
 		id: "G-559VEZH40V",
-		enabled: true,
 	},
 
 	components: [
@@ -37,4 +35,3 @@ export default defineNuxtConfig({
 		},
 	],
 });
-
