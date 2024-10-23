@@ -10,7 +10,7 @@ type ScrapingResult = {
 const scrapingData = async (endpoint: string): Promise<ScrapingResult> => {
 	try {
 		const website = `https://pdaotao.duytan.edu.vn/${endpoint}`;
-		const { data, status } = await axios.get(website, { timeout: 5000 });
+		const { data, status } = await axios.get(website, { timeout: 20000 });
 
 		if (status !== 200) {
 			throw new Error(
