@@ -1,4 +1,4 @@
-const extractEndPoint = (href: string | undefined): string => {
+export function extractEndpoint(href: string | undefined): string {
 	// Kiểm tra nếu href là undefined hoặc không phải là chuỗi
 	if (typeof href !== "string") {
 		throw new Error("Invalid href: href should be a string");
@@ -22,6 +22,4 @@ const extractEndPoint = (href: string | undefined): string => {
 		return match[1]; // Safely return the first capturing group
 	}
 	throw new Error("Invalid href format"); // Handle the case where no match is found
-};
-
-export { extractEndPoint };
+}

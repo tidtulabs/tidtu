@@ -25,6 +25,8 @@ export interface Exams {
   dateUpload: string;
   href: string;
   isNew: boolean;
+  pagination?: string;
+  row?: number;
 }
 type FetchResponse = {
   success: boolean;
@@ -55,7 +57,7 @@ const nextPagination = ref<{
 const abortController = ref<AbortController | null>(null);
 const isFetchSystem = ref(true);
 
-const FETCH_MORE = 5;
+const FETCH_MORE = 3;
 
 async function fetchPage(
   nextPage: string,
@@ -86,31 +88,33 @@ async function fetchPage(
 
     // console.log("nextPageData", data);
     if (data.success) {
-      exams.value = [...exams.value, ...data.response.data];
-      exCache.value = [...exCache.value, ...data.response.data];
-    }
-
-    if (data.response.next_pagination !== "") {
-      if (
-        takeOld ||
-        (!takeOld && data.response.is_new) ||
-        shouldFetch < FETCH_MORE
-      ) {
-        nextPagination.value.nextPage = data.response.next_pagination;
-        nextPagination.value.currentPage += 1;
-        if (!data.response.is_new && !takeOld) {
-          shouldFetch += 1;
-        }
-        await fetchPage(
-          data.response.next_pagination,
-          takeOld,
-          exCache,
-          shouldFetch,
-        );
+      if (data.response.data) {
+        exams.value = [...exams.value, ...data.response.data];
+        exCache.value = [...exCache.value, ...data.response.data];
       }
-    } else {
-      isFetchSystem.value = false;
-      nextPagination.value.nextPage = null;
+
+      if (data.response.next_pagination !== "") {
+        if (
+          takeOld ||
+          (!takeOld && data.response.is_new) ||
+          shouldFetch < FETCH_MORE
+        ) {
+          nextPagination.value.nextPage = data.response.next_pagination;
+          nextPagination.value.currentPage += 1;
+          if (!data.response.is_new && !takeOld) {
+            shouldFetch += 1;
+          }
+          await fetchPage(
+            data.response.next_pagination,
+            takeOld,
+            exCache,
+            shouldFetch,
+          );
+        }
+      } else {
+        isFetchSystem.value = false;
+        nextPagination.value.nextPage = null;
+      }
     }
   } catch (error: any) {
     if (error.name === "FetchError") {
@@ -154,6 +158,7 @@ const columnVisibility = ref<VisibilityState>({
   dateUpload: true,
   isNew: false,
   href: true,
+  page: true,
 });
 
 const updateColumnVisibility = () => {
@@ -178,8 +183,26 @@ const columns: ColumnDef<Exams>[] = [
     cell: ({ row }) =>
       h("div", { class: "capitalize" }, row.getValue("dateUpload")),
   },
+
   {
     accessorKey: "isNew",
+  },
+  {
+    id: "page",
+    accessorFn: (row) => {
+      const pagination = row.pagination;
+      const rowNumber = row.row;
+      const regex = /(\d+)/;
+      let number = 1;
+      if (pagination) {
+        const match = regex.exec(pagination);
+        if (match) {
+          number = parseInt(match[1]);
+        }
+      }
+      return `${number}:${rowNumber} `;
+    },
+    header: "Số trang",
   },
   {
     accessorKey: "text",
@@ -210,7 +233,6 @@ const columns: ColumnDef<Exams>[] = [
           description: "Vui lòng chờ trong giây lát",
         });
 
-        isDownloading.value = true;
         // console.log("Downloading from:", row.original.href);
         const match = /ID=(\d+)/.exec(row.original.href);
         let id = "";
@@ -226,9 +248,10 @@ const columns: ColumnDef<Exams>[] = [
           method: "POST",
           body: JSON.stringify({ url: row.original.href }),
         });
+
         const data = response?.data;
 
-        if (data?.url) {
+        if (data?.url && response?.success) {
           const link = data.url;
           const a = document.createElement("a");
           a.href = link;
@@ -238,14 +261,13 @@ const columns: ColumnDef<Exams>[] = [
           document.body.removeChild(a);
           isDownloading.value = false;
           msg.dismiss();
-        }
-        if (!response?.success) {
+        } else {
           isDownloading.value = false;
           msg.dismiss();
           toast({
             title: "Lỗi",
-            description: response.message,
-            variant: "default",
+            description: response?.message,
+            variant: "error",
           });
         }
       };
@@ -380,7 +402,8 @@ const table = useVueTable({
         </PopoverTrigger>
         <PopoverContent>
           <p>
-            Theo mặc định hệ thống tự tải những danh sách mới nhất và thêm 5
+            Theo mặc định hệ thống tự tải những danh sách mới nhất và thêm
+            {{ FETCH_MORE }}
             trang
           </p>
           <p>
