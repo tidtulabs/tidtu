@@ -6,10 +6,6 @@ export default defineNuxtConfig({
 	},
 	css: ["~/assets/css/main.css"],
 	devtools: { enabled: true },
-	runtimeConfig: {
-		NODE_ENV: process.env.NODE_ENV,
-		GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID,
-	},
 	modules: [
 		"@nuxtjs/tailwindcss",
 		"shadcn-nuxt",
@@ -25,8 +21,7 @@ export default defineNuxtConfig({
 		],
 	],
 	gtag: {
-		enabled: process.env.NODE_ENV === "production",
-		id: process.env.GOOGLE_ANALYTICS_ID,
+		id: "G-559VEZH40V",
 	},
 
 	components: [
@@ -40,4 +35,3 @@ export default defineNuxtConfig({
 		},
 	],
 });
-
