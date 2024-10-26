@@ -8,17 +8,17 @@ import evaluation from "~/assets/icons/evaluation.svg";
 const cards = ref([
   {
     title: DocumentMagnifyingGlassIcon,
-    description: "Tìm Nhanh danh sách thi",
+    description: "Tìm Nhanh danh sách thi đại học Duy Tân (DTU)",
     content:
-      "Một công cụ giúp bạn tìm kiếm, tải xuống danh sách thi nhanh chóng và dễ dàng",
+      "Một công cụ giúp bạn tìm kiếm, tải xuống danh sách thi phòng đào tạo Duy Tân nhanh chóng và dễ dàng",
     footer: "Truy cập ngay",
     href: "/pdaotao/examlist",
   },
   {
     title: evaluation,
-    description: "Đánh giá nhanh DTU",
+    description: "Đánh giá nhanh giảng viên đại học Duy Tân (DTU)",
     content:
-      "Một tiện ích mở rộng trên chrome giúp bạn đánh giá nhanh giảng viên trường DTU",
+      "Một tiện ích mở rộng trên chrome giúp bạn đánh giá nhanh giảng viên trường đại học Duy Tân (DTU)",
     footer: "Truy cập ngay",
     href: "https://chromewebstore.google.com/detail/%C4%91%C3%A1nh-gi%C3%A1-nhanh-dtu/cjdehokiceofnofkeelodgijlgjeimak",
   },
@@ -45,10 +45,15 @@ const cards = ref([
           </CardTitle>
           <CardDescription
             class="font-semibold text-lg text-black dark:text-white line-clamp-3"
-            >{{ card.description }}</CardDescription
+          >
+            <h2>
+              {{ card.description }}
+            </h2></CardDescription
           >
         </CardHeader>
-        <CardContent> {{ card.content }} </CardContent>
+        <CardContent>
+          <h3>{{ card.content }}</h3>
+        </CardContent>
         <NuxtLink :to="card.href">
           <CardFooter>
             <Button>
