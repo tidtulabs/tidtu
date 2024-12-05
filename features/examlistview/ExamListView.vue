@@ -244,15 +244,15 @@ const columns: ColumnDef<Exams>[] = [
           console.error("Cannot found href.");
         }
 
-        const response = await $fetch(`/api/scraping/pdaotao/exams/${id}`, {
+        const res = await $fetch(`/api/scraping/pdaotao/exams/${id}`, {
           method: "POST",
           body: JSON.stringify({ url: row.original.href }),
         });
 
-        const data = response?.data;
+        const url = res?.response?.url;
 
-        if (data?.url && response?.success) {
-          const link = data.url;
+        if (url && res?.success) {
+          const link = url;
           const a = document.createElement("a");
           a.href = link;
           a.download = "";
@@ -266,7 +266,7 @@ const columns: ColumnDef<Exams>[] = [
           msg.dismiss();
           toast({
             title: "Lỗi",
-            description: response?.message,
+            description: res?.message,
             variant: "error",
           });
         }

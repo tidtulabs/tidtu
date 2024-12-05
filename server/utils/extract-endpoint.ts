@@ -1,5 +1,4 @@
 export function extractEndpoint(href: string | undefined): string {
-	// Kiểm tra nếu href là undefined hoặc không phải là chuỗi
 	if (typeof href !== "string") {
 		throw new Error("Invalid href: href should be a string");
 	}

@@ -19,11 +19,14 @@ export default defineNuxtConfig({
 				test: false,
 			},
 		],
+		"nuxt-security",
 	],
 	gtag: {
 		id: "G-559VEZH40V",
 	},
-
+	security: {
+		corsHandler: {},
+	},
 	components: [
 		{
 			path: "~/features",

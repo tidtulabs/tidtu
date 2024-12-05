@@ -1,9 +1,9 @@
 {
-	"name": "nuxt-app",
+	"name": "tidtu",
 	"private": true,
-	"type": "module",
 	"scripts": {
 		"build": "nuxt build",
+		"test": "vitest",
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
@@ -12,6 +12,7 @@
 	"dependencies": {
 		"@heroicons/vue": "^2.1.5",
 		"@nuxtjs/google-adsense": "^3.0.0",
+		"@nuxtjs/tailwindcss": "^6.12.2",
 		"@tanstack/vue-table": "^8.20.5",
 		"@vueuse/core": "^11.1.0",
 		"axios": "^1.7.7",
@@ -22,17 +23,27 @@
 		"lucide-vue-next": "^0.453.0",
 		"nuxt": "^3.13.0",
 		"nuxt-gtag": "^3.0.1",
+		"nuxt-security": "2.1.5",
 		"nuxt-svgo-loader": "^0.4.1",
 		"radix-vue": "^1.9.7",
 		"shadcn-nuxt": "^0.10.4",
 		"tailwind-merge": "^2.5.4",
 		"tailwindcss-animate": "^1.0.7",
 		"vue": "latest",
-		"vue-router": "latest",
-		"@nuxtjs/tailwindcss": "^6.12.2"
+		"vue-router": "latest"
 	},
 	"packageManager": "pnpm@9.12.0",
+	"engines": {
+		"node": "20.18.1"
+	},
 	"devDependencies": {
-		"typescript": "^5.6.3"
+		"@nuxt/test-utils": "^3.14.4",
+		"@vitejs/plugin-vue": "^5.2.1",
+		"@vue/test-utils": "^2.4.6",
+		"happy-dom": "^15.11.7",
+		"jsdom": "^25.0.1",
+		"playwright-core": "^1.49.0",
+		"typescript": "^5.6.3",
+		"vitest": "^2.1.8"
 	}
 }

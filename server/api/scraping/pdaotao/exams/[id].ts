@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
 			return {
 				success: true,
 				message: "Data has been processed successfully.",
-				data: {
+				response: {
 					url: "https://pdaotao.duytan.edu.vn/" + data,
 				},
 			};
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
 		}
 		return {
 			success: false,
-			data: null,
+			response: null,
 			message: `${error.message}`,
 		};
 	}

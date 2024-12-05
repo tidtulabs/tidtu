@@ -105,7 +105,7 @@ export default defineEventHandler(async (event) => {
 		}
 		return {
 			success: false,
-			data: null,
+			response: null,
 			message: `${error.message}`,
 		};
 	}
