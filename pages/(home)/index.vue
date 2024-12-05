@@ -5,7 +5,7 @@ useHead({
 import { DocumentMagnifyingGlassIcon } from "@heroicons/vue/24/outline";
 import evaluation from "~/assets/icons/evaluation.svg";
 
-const cards = ref([
+const cards = [
   {
     title: DocumentMagnifyingGlassIcon,
     description: "Tìm Nhanh danh sách thi đại học Duy Tân (DTU)",
@@ -22,8 +22,9 @@ const cards = ref([
     footer: "Truy cập ngay",
     href: "https://chromewebstore.google.com/detail/%C4%91%C3%A1nh-gi%C3%A1-nhanh-dtu/cjdehokiceofnofkeelodgijlgjeimak",
   },
-]);
+];
 </script>
+
 <template>
   <div class="flex flex-col container">
     <div class="m-14">
