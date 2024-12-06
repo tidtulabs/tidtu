@@ -1,10 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { setup, $fetch } from "@nuxt/test-utils";
-import { fileURLToPath } from "node:url";
 
-describe("API Exams", async () => {
+describe("/api/scraping/pdaotao/exams", async () => {
 	await setup({
-		rootDir: fileURLToPath(new URL("..", import.meta.url)),
 		server: true,
 	});
 

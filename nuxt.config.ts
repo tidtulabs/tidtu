@@ -20,6 +20,7 @@ export default defineNuxtConfig({
 			},
 		],
 		"nuxt-security",
+		// "@nuxt/test-utils/module",
 	],
 	gtag: {
 		id: "G-559VEZH40V",
