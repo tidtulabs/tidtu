@@ -22,7 +22,7 @@ const toggleColorMode = () => {
       >
         by ngtuonghy
       </h3>
-      <a href="https://github.com/ngtuonghy" target="_blank">
+      <a href="https://github.com/tidtulabs" target="_blank">
         <button
           class="rounded-md gap-x-1.5 p-1.5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
         >
