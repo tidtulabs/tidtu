@@ -7,14 +7,14 @@ type ScrapingResult = {
 	message?: string;
 };
 
-const scrapingData = async (endpoint: string): Promise<ScrapingResult> => {
+const scrapingData = async (endPoint: string): Promise<ScrapingResult> => {
 	try {
-		const website = `https://pdaotao.duytan.edu.vn/${endpoint}`;
+		const website = `https://pdaotao.duytan.edu.vn/${endPoint}`;
 		const { data, status } = await axios.get(website, { timeout: 20000 });
 
 		if (status !== 200) {
 			throw new Error(
-				`fetching page at endpoint: "${endpoint}". Status code: ${status}`,
+				`fetching page at endpoint: "${endPoint}". Status code: ${status}`,
 			);
 		}
 
@@ -28,7 +28,7 @@ const scrapingData = async (endpoint: string): Promise<ScrapingResult> => {
 				throw new Error(`Timeout error: ${error.message}`);
 			}
 			throw new Error(
-				`Error fetching page at endpoint: "${endpoint}". Status code: ${error.response?.status}`,
+				`Error fetching page at endpoint: "${endPoint}". Status code: ${error.response?.status}`,
 			);
 		} else {
 			return {
