@@ -9,7 +9,7 @@ vi.mock("axios");
 
 describe("scrapingData", () => {
 	it("should return data when request is successful", async () => {
-		const mockData = "<html><body><div>Test</div></body></html>"; // Dữ liệu giả lập
+		const mockData = "<html><body><div>Test</div></body></html>"; // Dữ liệu giả lập (Mock)
 		const mockResponse = {
 			data: mockData,
 			status: 200,
