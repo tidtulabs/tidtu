@@ -1,4 +1,4 @@
-async function getExamListamList(
+async function getExamList(
 	endpoint: string = "",
 	data: {
 		text: string;
@@ -15,8 +15,11 @@ async function getExamListamList(
 		let nextPagination = "";
 		const fetch = `EXAM_LIST${endpoint ? `${endpoint}` : ""}`;
 		const scraping = await scrapingData(fetch);
+		if (!scraping.success) {
+			throw new Error(scraping.message);
+		}
 
-		if (scraping.data) {
+		if (scraping.data && scraping.success) {
 			const $ = scraping.data;
 			const rows = $(".border_main").find("tr");
 
@@ -85,7 +88,7 @@ export default defineEventHandler(async (event) => {
 		if (query.next_pagination) {
 			endpoint = extractEndpoint(query.next_pagination as string);
 		}
-		const data = await getExamListamList(endpoint);
+		const data = await getExamList(endpoint);
 
 		setResponseStatus(event, 200);
 		return {
@@ -98,8 +101,8 @@ export default defineEventHandler(async (event) => {
 			message: "Data has been processed successfully.",
 		};
 	} catch (error: any) {
-		if (error.message.includes("Timeout")) {
-			setResponseStatus(event, 502);
+		if (error.message.includes("Time out")) {
+			setResponseStatus(event, 504);
 		} else {
 			setResponseStatus(event, 500);
 		}

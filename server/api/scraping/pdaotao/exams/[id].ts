@@ -1,32 +1,35 @@
 const validExtensions = ["xls", "xlsx", "pdf", "doc", "docx", "ppt", "pptx"];
-const getFile = async (getEndpoint: string) => {
-	try {
-		const scraping = await scrapingData(getEndpoint);
-		if (scraping.data) {
-			const $ = scraping.data;
+const getFileUrl = async (getEndpoint: string) => {
+	const scraping = await scrapingData(getEndpoint);
 
-			let hrefs = null;
-			const rows = $(".border_main").find("tr");
-			for (let i = 0; i < rows.length; i++) {
-				const links = $(rows[i]).find("a");
+	if (scraping.success === false) {
+		throw new Error(scraping.message);
+	}
 
-				links.each((_, element) => {
-					const href = element.attribs.href;
-					const isValidFile = validExtensions.some((ext) =>
-						href.endsWith(`.${ext}`),
-					);
+	if (scraping.data) {
+		const $ = scraping.data;
+		let urlFile = null;
+		const rows = $(".border_main").find("tr");
+		for (let i = 0; i < rows.length; i++) {
+			const links = $(rows[i]).find("a");
 
-					if (isValidFile) {
-						hrefs = extractEndpoint(href);
-						// console.log("hrefs", hrefs);
-						return;
-					}
-				});
-			}
-			return hrefs;
+			links.each((_, element) => {
+				const href = element.attribs.href;
+				const isValidFile = validExtensions.some((ext) =>
+					href.endsWith(`.${ext}`),
+				);
+
+				if (isValidFile) {
+					urlFile = extractEndpoint(href);
+					return; // break loop
+				}
+			});
 		}
-	} catch (error) {
-		throw new Error(`Hrefs ${error}`);
+
+		if (!urlFile) {
+			throw new Error("File url not found in the page.");
+		}
+		return urlFile;
 	}
 };
 
@@ -35,7 +38,7 @@ export default defineEventHandler(async (event) => {
 		if (event.node.req.method === "POST") {
 			const body = await readBody(event);
 			// console.log("Dữ liệu nhận được:", body);
-			const data = await getFile(body.url);
+			const data = await getFileUrl(body.url);
 
 			return {
 				success: true,
@@ -47,7 +50,7 @@ export default defineEventHandler(async (event) => {
 		}
 	} catch (error: any) {
 		if (error.message.includes("Time out")) {
-			setResponseStatus(event, 502);
+			setResponseStatus(event, 504);
 		} else {
 			setResponseStatus(event, 500);
 		}

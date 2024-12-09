@@ -24,3 +24,9 @@ test("", () => {
 		"EXAM_LIST_Detail/?ID=60033&lang=VN",
 	);
 });
+
+test("Invalid href", () => {
+	expect(() => extractEndpoint("")).toThrowError(
+		"Invalid href: href should be a non-empty string",
+	);
+});
