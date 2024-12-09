@@ -1,6 +1,6 @@
-export function extractEndpoint(href: string | undefined): string {
-	if (typeof href !== "string") {
-		throw new Error("Invalid href: href should be a string");
+export function extractEndpoint(href: string): string {
+	if (!href || typeof href !== "string") {
+		throw new Error("Invalid href: href should be a non-empty string");
 	}
 	// Normalize the href by removing leading ./ or ../
 	if (href.startsWith("../")) {
