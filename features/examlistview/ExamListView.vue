@@ -57,7 +57,7 @@ const nextPagination = ref<{
 const abortController = ref<AbortController | null>(null);
 const isFetchSystem = ref(true);
 
-const FETCH_MORE = 3;
+const FETCH_MORE = 5;
 
 async function fetchPage(
   nextPage: string,
