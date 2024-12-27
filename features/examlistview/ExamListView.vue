@@ -33,7 +33,9 @@ type FetchResponse = {
   response: {
     data: Exams[];
     is_new: boolean;
+    is_cached: boolean;
     next_pagination: string;
+    current_pagination: string;
   };
   message: string;
 };
@@ -56,8 +58,10 @@ const nextPagination = ref<{
 });
 const abortController = ref<AbortController | null>(null);
 const isFetchSystem = ref(true);
+// TODO: need write logic 
 
-const FETCH_MORE = 3;
+//const shouldFetchMore = true;
+const FETCH_MORE = 1;
 
 async function fetchPage(
   nextPage: string,
@@ -85,7 +89,9 @@ async function fetchPage(
         signal,
       },
     );
-
+    const match = data.response.current_pagination.match(/(\d+)/);
+    nextPagination.value.currentPage = match ? parseInt(match[1]) + 1 : 1;
+    // fetchingFlag.value.isAuto = !data.response.is_cached;
     // console.log("nextPageData", data);
     if (data.success) {
       if (data.response.data) {
@@ -93,6 +99,7 @@ async function fetchPage(
         exCache.value = [...exCache.value, ...data.response.data];
       }
 
+      // console.log(data.response.current_pagination);
       if (data.response.next_pagination !== "") {
         if (
           takeOld ||
@@ -104,6 +111,7 @@ async function fetchPage(
           if (!data.response.is_new && !takeOld) {
             shouldFetch += 1;
           }
+
           await fetchPage(
             data.response.next_pagination,
             takeOld,
@@ -118,15 +126,15 @@ async function fetchPage(
     }
   } catch (error: any) {
     if (error.message.includes("signal is aborted without reason")) {
-      console.info("cancel fetch"); 
+      console.info("cancel fetch");
     } else {
-       toast({
+      toast({
         title: "Lỗi tải dữ liệu (Máy chủ nhận quá nhiều yêu cầu)",
         description: "Đã xác định được lỗi, đang tiến hành sửa",
 
         variant: "error",
       });
-      console.error("Fetch error:", error); 
+      console.error("Fetch error:", error);
     }
   } finally {
     fetchingFlag.value.isAuto = false;

@@ -14,6 +14,27 @@ const scrapingData = async (endPoint: string): Promise<ScrapingResult> => {
 			timeout: 20000,
 		});
 
+		//client.on('error', err => console.log('Redis Client Error', err));
+		//
+		//await client.connect();
+		//
+		//await client.set('foo5', 'bar');
+		//const result = await client.get('foo');
+		//console.log(result)  // >>> bar
+		//
+
+	
+		//redis
+		//.on("connect", function () {
+		//	console.log("Connected!");
+		//})
+		//.on("error", function (err) {
+		//	console.log("Error " + err);
+		//});
+		//
+		//await redis.connect();
+		//  await redis.disconnect();
+
 		if (status !== 200 || !data) {
 			return {
 				success: false,
@@ -36,8 +57,7 @@ const scrapingData = async (endPoint: string): Promise<ScrapingResult> => {
 			} else {
 				return {
 					success: false,
-					message:
-						`An error occurred while connecting to the server DTU. Please try again later! status ${error.code}`,
+					message: `An error occurred while connecting to the server DTU. Please try again later! status ${error.code}`,
 				};
 			}
 		}

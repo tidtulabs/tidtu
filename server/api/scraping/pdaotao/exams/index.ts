@@ -1,3 +1,5 @@
+import { aw } from "vitest/dist/chunks/reporters.D7Jzd9GS.js";
+
 async function getExamList(
 	endpoint: string = "",
 	data: {
@@ -8,11 +10,17 @@ async function getExamList(
 		pagination?: string;
 		row?: number;
 	}[] = [],
-): Promise<{ data: typeof data; nextPagination: string; isNew: boolean }> {
+): Promise<{
+	data: typeof data;
+	nextPagination: string;
+	isNew: boolean;
+	currentPagination: string;
+}> {
 	try {
 		let isPageNew: boolean = false;
 		let trueNew = false;
 		let nextPagination = "";
+		let currentPagination = "";
 		const fetch = `EXAM_LIST${endpoint ? `${endpoint}` : ""}`;
 		const scraping = await scrapingData(fetch);
 		if (!scraping.success) {
@@ -62,6 +70,7 @@ async function getExamList(
 							row: index - ROW_SKIP + 1, // because we skip 2 rows at the beginning and row array is 0-based
 						});
 					} else if (linkIndex === links.length - 1 && linkText === ">>") {
+						currentPagination = endpoint;
 						nextPagination = extractEndpoint(linkHref || "");
 						trueNew = isPageNew;
 					} else {
@@ -74,6 +83,7 @@ async function getExamList(
 			data,
 			isNew: trueNew,
 			nextPagination: nextPagination,
+			currentPagination: currentPagination,
 		};
 	} catch (error) {
 		throw new Error(`${error}`);
@@ -89,14 +99,65 @@ export default defineEventHandler(async (event) => {
 			endpoint = extractEndpoint(query.next_pagination as string);
 		}
 		const data = await getExamList(endpoint);
-
 		setResponseStatus(event, 200);
+
+		let currentData: {
+			data: any[];
+			isNew: boolean;
+			nextPagination: string;
+			currentPagination: string;
+		} = (await useStorage("tidtu").getItem("cache")) || {
+			data: [],
+			isNew: false,
+			nextPagination: "",
+			currentPagination: "",
+		};
+
+		//console.log(currentData.data.length);
+		if (
+			data.data[0]?.text === currentData.data[0]?.text &&
+			data.data[0]?.dateUpload === currentData.data[0]?.dateUpload
+		) {
+			return {
+				success: true,
+				response: {
+					data: currentData.data,
+					is_new: currentData.isNew,
+					next_pagination: currentData.nextPagination || "",
+					current_pagination: currentData.currentPagination || "",
+          is_cached: true, 
+				},
+				message: "Data has been processed successfully. (No new data)",
+			};
+		} else if (data.data[0].pagination === "EXAM_LIST" && currentData.data.length > 0) {
+      //console.log("data pagination is EXAM_LIST");
+			await useStorage("tidtu").removeItem("cache");
+		} else if (currentData.data.length < 14 * 16) {
+			//console.log("data length is less than 14*15");
+			if (currentData.data) {
+				//console.log("currentData is not empty");
+				Array.prototype.push.apply(currentData.data, data.data);
+				currentData.isNew = data.isNew;
+				currentData.nextPagination = data.nextPagination;
+				currentData.currentPagination = data.currentPagination;
+			} else {
+				currentData.data = data.data;
+				currentData.isNew = data.isNew;
+				currentData.nextPagination = data.nextPagination;
+				currentData.currentPagination = data.currentPagination;
+			}
+			await useStorage("tidtu").setItem("cache", currentData);
+		}
+
+		//await useStorage("tidtu").setItem("cache", currentData);
 		return {
 			success: true,
 			response: {
 				data: data.data,
 				is_new: data.isNew,
 				next_pagination: data.nextPagination || "",
+				current_pagination: data.currentPagination || "",
+        is_cached: false,
 			},
 			message: "Data has been processed successfully.",
 		};
@@ -106,6 +167,7 @@ export default defineEventHandler(async (event) => {
 		} else {
 			setResponseStatus(event, 500);
 		}
+		//console.log(error.message);
 		return {
 			success: false,
 			response: null,
