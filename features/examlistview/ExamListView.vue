@@ -117,10 +117,15 @@ async function fetchPage(
       }
     }
   } catch (error: any) {
-    if (error.name === "FetchError") {
-      console.info("cancel fetch");
+    if (error.message.includes("signal is aborted without reason")) {
+      console.info("cancel fetch"); 
     } else {
-      console.error("Fetch error:", error);
+       toast({
+        title: "Lỗi tải dữ liệu",
+        description: "Đã xảy ra lỗi, hãy làm mới trang hoặc kiểm tra kết nối của bạn.",
+        variant: "error",
+      });
+      console.error("Fetch error:", error); 
     }
   } finally {
     fetchingFlag.value.isAuto = false;
