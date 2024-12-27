@@ -122,7 +122,7 @@ async function fetchPage(
     } else {
        toast({
         title: "Lỗi tải dữ liệu (Máy chủ nhận quá nhiều yêu cầu)",
-        description: "Đã xảy ra lỗi, hãy làm mới trang hoặc kiểm tra kết nối của bạn.",
+        description: "Đã xác định được lỗi, đang tiến hành sửa",
 
         variant: "error",
       });
