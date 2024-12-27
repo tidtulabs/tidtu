@@ -33,13 +33,13 @@ const scrapingData = async (endPoint: string): Promise<ScrapingResult> => {
 					message:
 						"Time out! request took too long to complete. Please try again later.",
 				};
+			} else {
+				return {
+					success: false,
+					message:
+						`An error occurred while connecting to the server DTU. Please try again later! status ${error.code}`,
+				};
 			}
-
-			return {
-				success: false,
-				message:
-					"An error occurred while connecting to the server. Please try again later.",
-			};
 		}
 		return {
 			success: false,
