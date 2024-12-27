@@ -37,8 +37,30 @@ export default defineEventHandler(async (event) => {
 	try {
 		if (event.node.req.method === "POST") {
 			const body = await readBody(event);
-			// console.log("Dữ liệu nhận được:", body);
+
+			const match = body.url.match(/\d+/);
+			const id = match ? match[0] : null;
+	
+			if (id) {
+				const cached = await useStorage("cached").getItem(`downloadFile:${id}`);
+				if (cached) {
+					return {
+						success: true,
+						message: "Data has been processed successfully. (Cached)",
+						response: {
+							url: "https://pdaotao.duytan.edu.vn/" + cached,
+						},
+					};
+				}
+			}
+
 			const data = await getFileUrl(body.url);
+
+			if (data){
+				await useStorage("cached").setItem(`downloadFile:${id}`, data, {
+					ttl: 86400 * 2, // 2 days
+				});
+      }
 
 			return {
 				success: true,
@@ -48,6 +70,7 @@ export default defineEventHandler(async (event) => {
 				},
 			};
 		}
+
 	} catch (error: any) {
 		if (error.message.includes("Time out")) {
 			setResponseStatus(event, 504);

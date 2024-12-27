@@ -5,7 +5,7 @@ export default defineNitroPlugin(() => {
 
 	// Dynamically pass in credentials from runtime configuration, or other sources
 	const driver = redisDriver({
-		base: "tidtu",
+		base: "cached",
 		host: useRuntimeConfig().redis.host,
 		port: useRuntimeConfig().redis.port,
 		username: useRuntimeConfig().redis.username,
@@ -14,5 +14,5 @@ export default defineNitroPlugin(() => {
 	});
 
 	// Mount driver
-	storage.mount("tidtu", driver);
+	storage.mount("cached", driver);
 });

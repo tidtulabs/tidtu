@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
 			isNew: boolean;
 			nextPagination: string;
 			currentPagination: string;
-		} = (await useStorage("tidtu").getItem("cache")) || {
+		} = (await useStorage("cached").getItem("scraping")) || {
 			data: [],
 			isNew: false,
 			nextPagination: "",
@@ -127,11 +127,11 @@ export default defineEventHandler(async (event) => {
 					current_pagination: currentData.currentPagination || "",
           is_cached: true, 
 				},
-				message: "Data has been processed successfully. (No new data)",
+				message: "Data has been processed successfully. (Cached)",
 			};
 		} else if (data.data[0].pagination === "EXAM_LIST" && currentData.data.length > 0) {
       //console.log("data pagination is EXAM_LIST");
-			await useStorage("tidtu").removeItem("cache");
+			await useStorage("cached").removeItem("scraping");
 		} else if (currentData.data.length < 14 * 16) {
 			//console.log("data length is less than 14*15");
 			if (currentData.data) {
@@ -146,7 +146,7 @@ export default defineEventHandler(async (event) => {
 				currentData.nextPagination = data.nextPagination;
 				currentData.currentPagination = data.currentPagination;
 			}
-			await useStorage("tidtu").setItem("cache", currentData);
+			await useStorage("cached").setItem("scraping", currentData);
 		}
 
 		//await useStorage("tidtu").setItem("cache", currentData);
