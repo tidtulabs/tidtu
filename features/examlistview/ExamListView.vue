@@ -121,8 +121,9 @@ async function fetchPage(
       console.info("cancel fetch"); 
     } else {
        toast({
-        title: "Lỗi tải dữ liệu",
+        title: "Lỗi tải dữ liệu (Máy chủ nhận quá nhiều yêu cầu)",
         description: "Đã xảy ra lỗi, hãy làm mới trang hoặc kiểm tra kết nối của bạn.",
+
         variant: "error",
       });
       console.error("Fetch error:", error); 
