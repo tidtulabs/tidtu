@@ -1,4 +1,22 @@
-import { aw } from "vitest/dist/chunks/reporters.D7Jzd9GS.js";
+interface IReponse {
+	data: any[];
+	isNew: boolean;
+	nextPagination: string;
+	currentPagination: string;
+}
+
+interface IRes {
+	status: string;
+	data: any[];
+	meta: {
+		pagination: {
+			next: string;
+		};
+		isCached: boolean;
+		isNew: boolean;
+	};
+	message: string;
+}
 
 async function getExamList(
 	endpoint: string = "",
@@ -90,6 +108,39 @@ async function getExamList(
 	}
 }
 
+// NOTE: This function is used to run a background task
+
+const cachePaginationData = async (currentData: IReponse) => {
+	//console.log(currentData.nextPagination);
+	const data = await getExamList(currentData.nextPagination);
+	if (currentData.data) {
+		//console.log("currentData is not empty");
+		Array.prototype.push.apply(currentData.data, data.data);
+		currentData.isNew = data.isNew;
+		currentData.nextPagination = data.nextPagination;
+		currentData.currentPagination = data.currentPagination;
+	} else {
+		currentData.data = data.data;
+		currentData.isNew = data.isNew;
+		currentData.nextPagination = data.nextPagination;
+		currentData.currentPagination = data.currentPagination;
+	}
+	if (currentData.isNew) {
+		//console.log("dequeue is running");
+		//console.log("data length is less than 14*15");
+		cachePaginationData(currentData);
+	} else {
+		await useStorage("cached").setItem("scraping", currentData);
+	}
+};
+
+async function asyncCacheUpdater(obj: IReponse) {
+	setImmediate(async () => {
+		await cachePaginationData(obj);
+		await useStorage("cached").removeItem("isUpdated");
+	});
+}
+
 export default defineEventHandler(async (event) => {
 	const query = getQuery(event);
 	try {
@@ -98,72 +149,71 @@ export default defineEventHandler(async (event) => {
 		if (query.next_pagination) {
 			endpoint = extractEndpoint(query.next_pagination as string);
 		}
+		//console.log("endpoint",endpoint);
 		const data = await getExamList(endpoint);
 		setResponseStatus(event, 200);
 
-		let currentData: {
-			data: any[];
-			isNew: boolean;
-			nextPagination: string;
-			currentPagination: string;
-		} = (await useStorage("cached").getItem("scraping")) || {
-			data: [],
-			isNew: false,
-			nextPagination: "",
-			currentPagination: "",
-		};
-
-		//console.log(data.data[0].pagination);
-		//console.log(currentData);
-		if (
-			data.data[0]?.text === currentData.data[0]?.text &&
-			data.data[0]?.dateUpload === currentData.data[0]?.dateUpload
-		) {
-			return {
-				success: true,
-				response: {
-					data: currentData.data,
-					is_new: currentData.isNew,
-					next_pagination: currentData.nextPagination || "",
-					current_pagination: currentData.currentPagination || "",
-					is_cached: true,
-				},
-				message: "Data has been processed successfully. (Cached)",
+		if (endpoint === "") {
+			let currentData: IReponse = (await useStorage("cached").getItem(
+				"scraping",
+			)) || {
+				data: [],
+				isNew: false,
+				nextPagination: "",
+				currentPagination: "",
 			};
-		} else if (
-			data.data[0].pagination === "EXAM_LIST" &&
-			currentData.data.length > 0
-		) {
-			//console.log("data pagination is EXAM_LIST");
-			//await useStorage("cached").removeItem("scraping").catch((error) => {
-			//console.log(error);
-			//})
-			const newObj = {
-				data: data.data,
-				isNew: data.isNew,
-				nextPagination: data.nextPagination,
-				currentPagination: data.currentPagination,
-			};
-			await useStorage("cached").setItem("scraping", newObj);
 
-		} else if (currentData.data.length < 14 * 16) {
-			//console.log("data length is less than 14*15");
-			if (currentData.data) {
-				//console.log("currentData is not empty");
-				Array.prototype.push.apply(currentData.data, data.data);
-				currentData.isNew = data.isNew;
-				currentData.nextPagination = data.nextPagination;
-				currentData.currentPagination = data.currentPagination;
-			} else {
-				currentData.data = data.data;
-				currentData.isNew = data.isNew;
-				currentData.nextPagination = data.nextPagination;
-				currentData.currentPagination = data.currentPagination;
+			const isNotNew =
+				data.data[0]?.text === currentData.data[0]?.text &&
+				data.data[0]?.dateUpload === currentData.data[0]?.dateUpload;
+			//console.log(data.data[0].pagination);
+			//console.log(currentData);
+			if (isNotNew) {
+				return {
+					success: true,
+					response: {
+						data: currentData.data,
+						is_new: currentData.isNew,
+						next_pagination: currentData.nextPagination || "",
+						current_pagination: currentData.currentPagination || "",
+						is_cached: true,
+					},
+					message: "Data has been processed successfully. (Cached)",
+				};
+			} else if (
+				!isNotNew &&
+				data.data[0].pagination === "EXAM_LIST"
+				//currentData.data.length > 0
+			) {
+				const isUpdated = await useStorage("cached").getItem("isUpdated");
+				const newObj = {
+					data: data.data,
+					isNew: data.isNew,
+					nextPagination: data.nextPagination,
+					currentPagination: data.currentPagination,
+				};
+
+				if (!isUpdated) {
+					await useStorage("cached").setItem("isUpdated", true, {
+						ttl: 60,
+					});
+					asyncCacheUpdater(newObj);
+				}
+				return {
+					success: true,
+					response: {
+						data: currentData.data,
+						is_new: currentData.isNew,
+						next_pagination: currentData.nextPagination || "",
+						current_pagination: currentData.currentPagination || "",
+						is_cached: true,
+						is_updated: true,
+					},
+					message: "Data has been processed successfully. (Is updated)",
+				};
 			}
-			await useStorage("cached").setItem("scraping", currentData);
 		}
 
-		//await useStorage("tidtu").setItem("cache", currentData);
 		return {
 			success: true,
 			response: {
