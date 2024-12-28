@@ -113,7 +113,8 @@ export default defineEventHandler(async (event) => {
 			currentPagination: "",
 		};
 
-		//console.log(currentData.data.length);
+		//console.log(data.data[0].pagination);
+		//console.log(currentData);
 		if (
 			data.data[0]?.text === currentData.data[0]?.text &&
 			data.data[0]?.dateUpload === currentData.data[0]?.dateUpload
@@ -125,13 +126,26 @@ export default defineEventHandler(async (event) => {
 					is_new: currentData.isNew,
 					next_pagination: currentData.nextPagination || "",
 					current_pagination: currentData.currentPagination || "",
-          is_cached: true, 
+					is_cached: true,
 				},
 				message: "Data has been processed successfully. (Cached)",
 			};
-		} else if (data.data[0].pagination === "EXAM_LIST" && currentData.data.length > 0) {
-      //console.log("data pagination is EXAM_LIST");
-			await useStorage("cached").removeItem("scraping");
+		} else if (
+			data.data[0].pagination === "EXAM_LIST" &&
+			currentData.data.length > 0
+		) {
+			//console.log("data pagination is EXAM_LIST");
+			//await useStorage("cached").removeItem("scraping").catch((error) => {
+			//console.log(error);
+			//})
+			const newObj = {
+				data: data.data,
+				isNew: data.isNew,
+				nextPagination: data.nextPagination,
+				currentPagination: data.currentPagination,
+			};
+			await useStorage("cached").setItem("scraping", newObj);
+
 		} else if (currentData.data.length < 14 * 16) {
 			//console.log("data length is less than 14*15");
 			if (currentData.data) {
@@ -157,7 +171,7 @@ export default defineEventHandler(async (event) => {
 				is_new: data.isNew,
 				next_pagination: data.nextPagination || "",
 				current_pagination: data.currentPagination || "",
-        is_cached: false,
+				is_cached: false,
 			},
 			message: "Data has been processed successfully.",
 		};
