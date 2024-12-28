@@ -58,7 +58,7 @@ const nextPagination = ref<{
 });
 const abortController = ref<AbortController | null>(null);
 const isFetchSystem = ref(true);
-// TODO: need write logic 
+// TODO: need write logic
 
 //const shouldFetchMore = true;
 const FETCH_MORE = 1;
@@ -90,7 +90,7 @@ async function fetchPage(
       },
     );
     const match = data.response.current_pagination.match(/(\d+)/);
-    nextPagination.value.currentPage = match ? parseInt(match[1]) + 1 : 1;
+    nextPagination.value.currentPage = match ? parseInt(match[1]) : 1;
     // fetchingFlag.value.isAuto = !data.response.is_cached;
     // console.log("nextPageData", data);
     if (data.success) {
@@ -107,7 +107,6 @@ async function fetchPage(
           shouldFetch < FETCH_MORE
         ) {
           nextPagination.value.nextPage = data.response.next_pagination;
-          nextPagination.value.currentPage += 1;
           if (!data.response.is_new && !takeOld) {
             shouldFetch += 1;
           }
