@@ -131,15 +131,18 @@ const cachePaginationData = async (currentData: IReponse) => {
 		cachePaginationData(currentData);
 	} else {
 		await useStorage("cached").setItem("scraping", currentData);
+		await useStorage("cached").removeItem("isUpdated");
+	//setTimeout(() => {}, 10000);
+		return currentData;
 	}
 };
 
-async function asyncCacheUpdater(obj: IReponse) {
-	setImmediate(async () => {
-		await cachePaginationData(obj);
-		await useStorage("cached").removeItem("isUpdated");
-	});
-}
+//async function asyncCacheUpdater(obj: IReponse) {
+//	setImmediate(async () => {
+//		await cachePaginationData(obj);
+//		await useStorage("cached").removeItem("isUpdated");
+//	});
+//}
 
 export default defineEventHandler(async (event) => {
 	const query = getQuery(event);
@@ -197,20 +200,34 @@ export default defineEventHandler(async (event) => {
 					await useStorage("cached").setItem("isUpdated", true, {
 						ttl: 60,
 					});
-					asyncCacheUpdater(newObj);
+					const up = await cachePaginationData(newObj);
+					if (up) {
+						return {
+							success: true,
+							response: {
+								data: up.data,
+								is_new: up.isNew,
+								next_pagination: up.nextPagination || "",
+								current_pagination: up.currentPagination || "",
+								is_cached: false,
+								is_updated: true,
+							},
+							message: "Data has been processed successfully. (Is updated)",
+						};
+					}
 				}
-				return {
-					success: true,
-					response: {
-						data: currentData.data,
-						is_new: currentData.isNew,
-						next_pagination: currentData.nextPagination || "",
-						current_pagination: currentData.currentPagination || "",
-						is_cached: true,
-						is_updated: true,
-					},
-					message: "Data has been processed successfully. (Is updated)",
-				};
+				//return {
+				//	success: true,
+				//	response: {
+				//		data: currentData.data,
+				//		is_new: currentData.isNew,
+				//		next_pagination: currentData.nextPagination || "",
+				//		current_pagination: currentData.currentPagination || "",
+				//		is_cached: true,
+				//		is_updated: true,
+				//	},
+				//	message: "Data has been processed successfully. (Is updated)",
+				//};
 			}
 		}
 
