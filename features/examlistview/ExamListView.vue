@@ -61,7 +61,7 @@ const isFetchSystem = ref(true);
 // TODO: need write logic
 
 //const shouldFetchMore = true;
-const FETCH_MORE = 1;
+const FETCH_MORE = 0;
 
 async function fetchPage(
   nextPage: string,
