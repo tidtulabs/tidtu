@@ -14,6 +14,9 @@ export default defineNuxtConfig({
 			username: process.env.REDIS_USERNAME,
 			password: process.env.REDIS_PASSWORD,
 		},
+    server: {
+      cache: process.env.SERVER_CACHE,
+    },
 	},
 	devtools: { enabled: false},
 	modules: [

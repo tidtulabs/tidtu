@@ -132,7 +132,7 @@ const cachePaginationData = async (currentData: IReponse) => {
 	} else {
 		await useStorage("cached").setItem("scraping", currentData);
 		await useStorage("cached").removeItem("isUpdated");
-	//setTimeout(() => {}, 10000);
+		//setTimeout(() => {}, 10000);
 		return currentData;
 	}
 };
@@ -197,37 +197,42 @@ export default defineEventHandler(async (event) => {
 				};
 
 				if (!isUpdated) {
-					await useStorage("cached").setItem("isUpdated", true, {
-						ttl: 60,
+					//await useStorage("cached").setItem("isUpdated", true, {
+					//	ttl: 60,
+					//});
+					const s = useRuntimeConfig().server.cache;
+
+					fetch(s + "/api/v1/pdaotao/scraping/cache", {
+						method: "PUT",
 					});
-					const up = await cachePaginationData(newObj);
-					if (up) {
-						return {
-							success: true,
-							response: {
-								data: up.data,
-								is_new: up.isNew,
-								next_pagination: up.nextPagination || "",
-								current_pagination: up.currentPagination || "",
-								is_cached: false,
-								is_updated: true,
-							},
-							message: "Data has been processed successfully. (Is updated)",
-						};
-					}
+					//const up = await cachePaginationData(newObj);
+					//if (up) {
+					//	return {
+					//		success: true,
+					//		response: {
+					//			data: up.data,
+					//			is_new: up.isNew,
+					//			next_pagination: up.nextPagination || "",
+					//			current_pagination: up.currentPagination || "",
+					//			is_cached: false,
+					//			is_updated: true,
+					//		},
+					//		message: "Data has been processed successfully. (Is updated)",
+					//	};
+					//}
 				}
-				//return {
-				//	success: true,
-				//	response: {
-				//		data: currentData.data,
-				//		is_new: currentData.isNew,
-				//		next_pagination: currentData.nextPagination || "",
-				//		current_pagination: currentData.currentPagination || "",
-				//		is_cached: true,
-				//		is_updated: true,
-				//	},
-				//	message: "Data has been processed successfully. (Is updated)",
-				//};
+				return {
+					success: true,
+					response: {
+						data: currentData.data,
+						is_new: currentData.isNew,
+						next_pagination: currentData.nextPagination || "",
+						current_pagination: currentData.currentPagination || "",
+						is_cached: true,
+						is_updated: true,
+					},
+					message: "Data has been processed successfully. (Is updated)",
+				};
 			}
 		}
 
