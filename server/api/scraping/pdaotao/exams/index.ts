@@ -200,10 +200,15 @@ export default defineEventHandler(async (event) => {
 					//await useStorage("cached").setItem("isUpdated", true, {
 					//	ttl: 60,
 					//});
-					//const s = useRuntimeConfig().server.cache;
-					 $fetch("https://cache-tidu.onrender.com/api/v1/pdaotao/scraping/cache", {
-						method: "PUT",
-					});
+
+          const URL = `${useRuntimeConfig().server.cache}/api/v1/pdaotao/scraping/cache`;
+          //console.log(URL);
+					$fetch(
+            URL,
+						{
+							method: "PUT",
+						},
+					);
 					//     console.log(t);
 					//console.log("fetching");
 					//const up = await cachePaginationData(newObj);
