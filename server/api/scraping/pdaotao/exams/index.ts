@@ -148,17 +148,41 @@ export default defineEventHandler(async (event) => {
 	const query = getQuery(event);
 	try {
 		let endpoint = "";
+		const total = query.total || false;
+		if (total) {
+			const currentData: IReponse = (await useStorage("cached").getItem(
+				"examList:total",
+			)) || {
+				data: [],
+				isNew: false,
+				nextPagination: "",
+				currentPagination: "",
+			};
 
-		if (query.next_pagination) {
-			endpoint = extractEndpoint(query.next_pagination as string);
+			return {
+				success: true,
+				response: {
+					data: currentData.data,
+					is_new: currentData.isNew,
+					next_pagination: currentData.nextPagination || "",
+					current_pagination: currentData.currentPagination || "",
+					is_cached: true,
+				},
+				message: "Data has been processed successfully. (isUpdated)",
+			};
 		}
+		//await useStorage("cached").setItem("total", total);
+		//console.log(total);
+		//if (query.next_pagination) {
+		//	endpoint = extractEndpoint(query.next_pagination as string);
+		//}
 		//console.log("endpoint",endpoint);
 		const data = await getExamList(endpoint);
 		setResponseStatus(event, 200);
 
 		if (endpoint === "") {
 			let currentData: IReponse = (await useStorage("cached").getItem(
-				"scraping",
+				"examList:frequency",
 			)) || {
 				data: [],
 				isNew: false,
@@ -201,14 +225,11 @@ export default defineEventHandler(async (event) => {
 					//	ttl: 60,
 					//});
 
-          const URL = `${useRuntimeConfig().server.cache}/api/v1/pdaotao/scraping/cache`;
-          //console.log(URL);
-					$fetch(
-            URL,
-						{
-							method: "PUT",
-						},
-					);
+					const URL = `${useRuntimeConfig().server.cache}/api/v1/pdaotao/scraping/cache`;
+					//console.log(URL);
+					$fetch(URL, {
+						method: "PUT",
+					});
 					//     console.log(t);
 					//console.log("fetching");
 					//const up = await cachePaginationData(newObj);

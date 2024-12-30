@@ -41,13 +41,15 @@ type FetchResponse = {
 };
 
 const isMounted = ref(false);
+const examsTotal = ref<Exams[]>([]);
+const examsFrequency = ref<Exams[]>([]);
 const exams = ref<Exams[]>([]);
-const examsNew = ref<Exams[]>([]);
-const examsOld = ref<Exams[]>([]);
+
 const fetchingFlag = ref<{ isAuto: boolean; isFetching: boolean }>({
   isAuto: false,
   isFetching: false,
 });
+
 const isDownloading = ref<Boolean>(false);
 const nextPagination = ref<{
   currentPage: number;
@@ -56,112 +58,48 @@ const nextPagination = ref<{
   currentPage: 1,
   nextPage: null,
 });
-const abortController = ref<AbortController | null>(null);
-const isFetchSystem = ref(true);
-// TODO: need write logic
 
-//const shouldFetchMore = true;
-const FETCH_MORE = 1;
-
-async function fetchPage(
-  nextPage: string,
-  takeOld: boolean = false,
-  exCache: Ref<Exams[]>,
-  shouldFetch: number = 0,
-) {
-  if (!takeOld) {
-    fetchingFlag.value.isAuto = true;
-  } else {
-    fetchingFlag.value.isAuto = false;
-  }
-  fetchingFlag.value.isFetching = true;
-
-  if (abortController.value) {
-    abortController.value.abort();
-  }
-
-  abortController.value = new AbortController();
-  const signal = abortController.value.signal;
+const fetchPage = async (total: boolean) => {
   try {
     const data = await $fetch<FetchResponse>(
-      `/api/scraping/pdaotao/exams${nextPage ? `?next_pagination=${nextPage}` : ""}`,
-      {
-        signal,
-      },
+      `/api/scraping/pdaotao/exams${total ? `?total=${total}` : ""}`,
     );
-    const match = data.response.current_pagination.match(/(\d+)/);
-    nextPagination.value.currentPage = match ? parseInt(match[1]) : 1;
-    // fetchingFlag.value.isAuto = !data.response.is_cached;
-    // console.log("nextPageData", data);
-    if (data.success) {
-      if (data.response.data) {
-        exams.value = [...exams.value, ...data.response.data];
-        exCache.value = [...exCache.value, ...data.response.data];
-      }
 
-      // console.log(data.response.current_pagination);
-      if (data.response.next_pagination !== "") {
-        if (
-          takeOld ||
-          (!takeOld && data.response.is_new) ||
-          shouldFetch < FETCH_MORE
-        ) {
-          nextPagination.value.nextPage = data.response.next_pagination;
-          if (!data.response.is_new && !takeOld) {
-            shouldFetch += 1;
-          }
-
-          await fetchPage(
-            data.response.next_pagination,
-            takeOld,
-            exCache,
-            shouldFetch,
-          );
-        }
-      } else {
-        isFetchSystem.value = false;
-        nextPagination.value.nextPage = null;
-      }
-    }
+    return data;
   } catch (error: any) {
-    if (error.message.includes("signal is aborted without reason")) {
-      console.info("cancel fetch");
-    } else {
-      toast({
-        title: "Lỗi tải dữ liệu (Máy chủ nhận quá nhiều yêu cầu)",
-        description: "Đã xác định được lỗi, đang tiến hành sửa",
-
-        variant: "error",
-      });
-      console.error("Fetch error:", error);
-    }
+    console.error("Fetch error:", error);
   } finally {
     fetchingFlag.value.isAuto = false;
     fetchingFlag.value.isFetching = false;
-    abortController.value = null;
   }
-}
-function cancelFetch() {
-  if (abortController.value) {
-    abortController.value.abort();
-  }
-}
-
+};
 onMounted(async () => {
-  fetchPage("", false, examsNew);
   isMounted.value = true;
   // console.log("mounted");
   updateColumnVisibility();
   window.addEventListener("resize", updateColumnVisibility);
+  const res = await fetchPage(false);
+  if (res?.response.data) {
+    exams.value = res.response.data;
+    examsFrequency.value = res.response.data;
+  }
+  // console.log("exams", exams.value);
 });
 
 const fetchMore = async (isChecked: boolean) => {
   if (isChecked) {
-    if (nextPagination.value.nextPage) {
-      await fetchPage(nextPagination.value.nextPage, true, examsOld);
+    if (examsTotal.value.length > 0) {
+      exams.value = [...exams.value, ...examsTotal.value];
+    } else {
+      fetchingFlag.value.isFetching = true;
+      const res = await fetchPage(true);
+      if (res?.response.data) {
+        examsTotal.value = res.response.data;
+        exams.value = [...exams.value, ...res.response.data];
+      }
     }
   } else {
-    cancelFetch();
+    exams.value = examsFrequency.value;
   }
 };
 
@@ -382,9 +320,7 @@ const table = useVueTable({
             <Switch
               id="term"
               @update:checked="fetchMore"
-              :disabled="
-                nextPagination.nextPage === null || fetchingFlag.isAuto
-              "
+              :disabled="fetchingFlag.isFetching"
             />
             <Label for="term">Tất cả</Label>
           </TooltipTrigger>
@@ -394,7 +330,10 @@ const table = useVueTable({
         </Tooltip>
       </TooltipProvider>
       <div class="relative">
-        <p>({{ nextPagination.currentPage }} trang đã được tải)</p>
+        <p>
+          ({{ exams[exams.length - 1].pagination?.match(/(\d+)/)![1] }} trang đã
+          được tải)
+        </p>
         <span
           v-if="fetchingFlag.isFetching"
           class="absolute flex h-3 w-3 top-[-10px] right-0"
@@ -414,11 +353,7 @@ const table = useVueTable({
           <QuestionMarkCircleIcon class="w-5 h-5 text-primary" />
         </PopoverTrigger>
         <PopoverContent>
-          <p>
-            Theo mặc định hệ thống tự tải những danh sách mới nhất và thêm
-            {{ FETCH_MORE }}
-            trang
-          </p>
+          <p>Theo mặc định hệ thống tự tải những danh sách mới nhất trang</p>
           <p>
             <span class="text-primary">Màu đỏ</span> Hệ thống đang tự tải trang
           </p>
