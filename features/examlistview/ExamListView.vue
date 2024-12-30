@@ -76,8 +76,8 @@ const fetchPage = async (total: boolean) => {
 onMounted(async () => {
   isMounted.value = true;
   // console.log("mounted");
-  updateColumnVisibility();
-  window.addEventListener("resize", updateColumnVisibility);
+  //updateColumnVisibility();
+  //window.addEventListener("resize", updateColumnVisibility);
   const res = await fetchPage(false);
   if (res?.response.data) {
     exams.value = res.response.data;
