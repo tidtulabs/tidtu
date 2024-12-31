@@ -51,13 +51,6 @@ const fetchingFlag = ref<{ isAuto: boolean; isFetching: boolean }>({
 });
 
 const isDownloading = ref<Boolean>(false);
-const nextPagination = ref<{
-  currentPage: number;
-  nextPage: string | null;
-}>({
-  currentPage: 1,
-  nextPage: null,
-});
 
 const fetchPage = async (total: boolean) => {
   try {
@@ -67,7 +60,11 @@ const fetchPage = async (total: boolean) => {
 
     return data;
   } catch (error: any) {
-    console.error("Fetch error:", error);
+    toast({
+      title: "Lỗi",
+      description: "Không thể tải danh sách",
+      variant: "error",
+    });
   } finally {
     fetchingFlag.value.isAuto = false;
     fetchingFlag.value.isFetching = false;
@@ -353,7 +350,7 @@ const table = useVueTable({
           <QuestionMarkCircleIcon class="w-5 h-5 text-primary" />
         </PopoverTrigger>
         <PopoverContent>
-          <p>Theo mặc định hệ thống tự tải những danh sách mới nhất trang</p>
+          <p>Theo mặc định hệ thống tự tải những danh sách mới nhất</p>
           <p>
             <span class="text-primary">Màu đỏ</span> Hệ thống đang tự tải trang
           </p>

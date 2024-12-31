@@ -1,5 +1,4 @@
-const validExtensions = ["xls", "xlsx", "pdf", "doc", "docx", "ppt", "pptx"];
-const getFileUrl = async (getEndpoint: string) => {
+const getLinkDownLoad = async (getEndpoint: string) => {
 	const scraping = await scrapingData(getEndpoint);
 
 	if (scraping.success === false) {
@@ -9,27 +8,14 @@ const getFileUrl = async (getEndpoint: string) => {
 	if (scraping.data) {
 		const $ = scraping.data;
 		let urlFile = null;
-		const rows = $(".border_main").find("tr");
-		for (let i = 0; i < rows.length; i++) {
-			const links = $(rows[i]).find("a");
+		const rows = $(".border_main").find("table").find("tr").first().find("td");
 
-			links.each((_, element) => {
-				const href = element.attribs.href;
-				const isValidFile = validExtensions.some((ext) =>
-					href.endsWith(`.${ext}`),
-				);
-
-				if (isValidFile) {
-					urlFile = extractEndpoint(href);
-					return; // break loop
-				}
-			});
-		}
+		urlFile = $(rows).find("tr").find("a").eq(1).attr("href");
 
 		if (!urlFile) {
 			throw new Error("File url not found in the page.");
 		}
-		return urlFile;
+		return extractEndpoint(urlFile);
 	}
 };
 
@@ -40,7 +26,7 @@ export default defineEventHandler(async (event) => {
 
 			const match = body.url.match(/\d+/);
 			const id = match ? match[0] : null;
-	
+
 			if (id) {
 				const cached = await useStorage("cached").getItem(`downloadFile:${id}`);
 				if (cached) {
@@ -54,13 +40,13 @@ export default defineEventHandler(async (event) => {
 				}
 			}
 
-			const data = await getFileUrl(body.url);
+			const data = await getLinkDownLoad(body.url);
 
-			if (data){
+			if (data) {
 				await useStorage("cached").setItem(`downloadFile:${id}`, data, {
 					ttl: 86400 * 2, // 2 days
 				});
-      }
+			}
 
 			return {
 				success: true,
@@ -70,7 +56,6 @@ export default defineEventHandler(async (event) => {
 				},
 			};
 		}
-
 	} catch (error: any) {
 		if (error.message.includes("Time out")) {
 			setResponseStatus(event, 504);
