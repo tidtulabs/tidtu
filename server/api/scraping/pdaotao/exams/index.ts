@@ -103,7 +103,13 @@ export default defineEventHandler(async (event) => {
 
 				$fetch(URL, {
 					method: "PUT",
-				});
+				})
+					.then((response) => {
+						//console.log("Success:", response);
+					})
+					.catch((error) => {
+						//console.error("Error occurred:", error);
+					});
 			}
 		}
 
