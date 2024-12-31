@@ -61,8 +61,8 @@ const fetchPage = async (total: boolean) => {
     return data;
   } catch (error: any) {
     toast({
-      title: "Lỗi",
-      description: "Không thể tải danh sách",
+      title: "Lỗi (Quá nhiều yêu cầu đến máy chủ)",
+      description: "Vui lòng thử lại sau",
       variant: "error",
     });
   } finally {
