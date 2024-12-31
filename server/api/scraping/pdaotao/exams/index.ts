@@ -21,8 +21,8 @@ function parseTitleAndTime(input: string) {
 	};
 }
 
-const getFirstRow = async (endpoint: string) => {
-	const scraping = await scrapingData(endpoint);
+const getFirstRow = async () => {
+	const scraping = await scrapingData("EXAM_LIST");
 
 	if (!scraping.success || !scraping.data) {
 		throw new Error(scraping.message);
@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
 			};
 		}
 
-		const data = await getFirstRow("");
+		const data = await getFirstRow();
 
 		let currentData: IReponse = (await useStorage("cached").getItem(
 			"examList:frequency",
@@ -96,16 +96,15 @@ export default defineEventHandler(async (event) => {
 				},
 				message: "Data has been processed successfully. (Cached)",
 			};
-		}
+		} else {
+			const isUpdated = await useStorage("cached").getItem("isUpdated");
+			if (!isUpdated) {
+				const URL = `${useRuntimeConfig().server.cache}/api/v1/pdaotao/scraping/cache`;
 
-		const isUpdated = await useStorage("cached").getItem("isUpdated");
-
-		if (!isUpdated) {
-			const URL = `${useRuntimeConfig().server.cache}/api/v1/pdaotao/scraping/cache`;
-
-			$fetch(URL, {
-				method: "PUT",
-			});
+				$fetch(URL, {
+					method: "PUT",
+				});
+			}
 		}
 
 		return {
@@ -120,7 +119,6 @@ export default defineEventHandler(async (event) => {
 			},
 			message: "Data has been processed successfully. (Is updated)",
 		};
-
 	} catch (error: any) {
 		if (error.message.includes("Time out")) {
 			setResponseStatus(event, 504);
