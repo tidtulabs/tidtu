@@ -61,7 +61,7 @@ const fetchPage = async (total: boolean) => {
     return data;
   } catch (error: any) {
     toast({
-      title: "Lỗi (Quá nhiều yêu cầu đến máy chủ)",
+      title: "Lỗi (Quá nhiều yêu cầu đến máy chủ hoặc server DTU sập)",
       description: "Vui lòng thử lại sau",
       variant: "error",
     });
