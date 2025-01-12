@@ -1,8 +1,12 @@
-<script setup></script>
+<script setup>
+import RedirectPage from './layouts/RedirectPage.vue';
+
+</script>
 <template>
   <NuxtLoadingIndicator />
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <RedirectPage />
+  <!-- <NuxtLayout> -->
+    <!-- <NuxtPage /> -->
+  <!-- </NuxtLayout> -->
   <Toaster />
 </template>
