@@ -20,7 +20,7 @@ onMounted(() => {
     countdown.value -= 1;
     if (countdown.value <= 0) {
       clearInterval(interval);
-      navigateTo("https://example.com");
+      navigateTo(url, { external: true });
     }
   }, 1000);
 });
@@ -33,17 +33,15 @@ onMounted(() => {
       <h1 class="text-2xl">
         TIDTU thay đổi tên miền sang:
         <a :href="url" class="text-blue-500">
-          <strong >{{ url }}</strong>
+          <strong>{{ url }}</strong>
         </a>
       </h1>
     </div>
     <p>
-      Bạn sẽ được chuyển hướng sau: <strong class="text-red-500">{{ countdown }}</strong> giây
+      Bạn sẽ được chuyển hướng sau:
+      <strong class="text-red-500">{{ countdown }}</strong> giây
     </p>
   </div>
 </template>
 
-<style scoped>
-
-
-</style>
+<style scoped></style>
