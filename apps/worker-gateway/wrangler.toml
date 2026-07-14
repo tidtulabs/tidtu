@@ -1,0 +1,32 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "tidtu-worker-gateway"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+
+[observability]
+enabled = true
+
+[vars]
+CORS_ORIGIN = "https://tidtu.pages.dev"
+
+
+[[services]]
+binding = "CLONE_1"
+service = "worker-pdaotao"
+
+[[services]]
+binding = "CLONE_2"
+service = "worker-pdaotao-2"
+
+[[services]]
+binding = "CLONE_3"
+service = "worker-pdaotao-3"
+
+# Free user rate limiting
+[[ratelimits]]
+name = "MY_RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 50
+  period = 60

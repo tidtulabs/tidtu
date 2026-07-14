@@ -1,9 +1,9 @@
-import { Hono } from "hono";
+import { Router } from "express";
 import pdaotaoCached from "./cache-redis";
 
-const router = new Hono();
+const router: Router = Router();
 
-router.route("/pdaotao/scraping", pdaotaoCached);
+router.use("/pdaotao/scraping", pdaotaoCached);
 
 export default router;
 

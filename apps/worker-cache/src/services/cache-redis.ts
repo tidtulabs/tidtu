@@ -1,6 +1,5 @@
-import { scrapingData } from "../lib/cheerio";
-import { normalizeEndpoint } from "../utils/normalize-endpoint";
-
+import { scrapingData } from "@utils/cheerio";
+import { normalizeEndpoint } from "@utils/normalize-endpoint";
 
 export type ExamItem = {
 	examTitle: string; // Tiêu đề bài thi

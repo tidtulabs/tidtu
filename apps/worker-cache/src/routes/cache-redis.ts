@@ -1,7 +1,7 @@
-import { Hono } from "hono";
-import * as pdaotao from "../controllers/cache-redis";
-const router = new Hono();
+import { Router } from "express";
+import * as pdaotao from "@controllers/cache-redis";
+const router: Router = Router();
 
-router.put("/cache", pdaotao.cachedRedis);
+router.put("/examlist", pdaotao.cachedRedis);
 
 export default router;

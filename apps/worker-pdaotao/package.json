@@ -1,0 +1,37 @@
+{
+	"name": "worker-pdaotao",
+	"scripts": {
+		"dev": "concurrently \"wrangler dev --port 4001\" \"wrangler dev -e clone2 --port 4002\" \"wrangler dev -e clone3 --port 4003\"",
+		"dev:remote": "concurrently \"wrangler dev --port 4001 --remote\" \"wrangler dev -e clone2 --port 4002 --remote\" \"wrangler dev -e clone3 --port 4003 --remote\"",
+		"dev:single": "wrangler dev --port 4001",
+		"dev:single:remote": "wrangler dev --port 4001 --remote",
+		"dev:clone2": "wrangler dev -e clone2 --port 4002",
+		"dev:clone3": "wrangler dev -e clone3 --port 4003",
+		"test": "vitest",
+		"deploy": "concurrently \"wrangler deploy --minify\" \"wrangler deploy -e clone2 --minify\" \"wrangler deploy -e clone3 --minify\"",
+		"deploy:clone2": "wrangler deploy -e clone2 --minify",
+		"deploy:clone3": "wrangler deploy -e clone3 --minify",
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
+	},
+	"jest": {
+		"collectCoverageFrom": [
+			"index.js",
+			"src/*.js"
+		]
+	},
+	"dependencies": {
+		"axios": "^1.7.9",
+		"cheerio": "^1.0.0",
+		"hono": "^4.6.15",
+		"vite-tsconfig-paths": "^5.1.4"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.6.0",
+		"@cloudflare/workers-types": "^5.20260714.1",
+		"axios-mock-adapter": "^2.1.0",
+		"concurrently": "^9.1.1",
+		"miniflare": "^3.20241230.1",
+		"vitest": "2.1.8",
+		"wrangler": "^4.110.0"
+	}
+}

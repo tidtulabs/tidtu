@@ -1,5 +1,7 @@
-import { Context } from "hono";
-import { ExamItem, getExamList } from "../services/cache-redis";
+import { Request, Response } from "express";
+import { KV } from "@config/cloudflare";
+import { ExamItem, getExamList } from "@services/cache-redis";
+import { logger } from "@utils/winston";
 
 const Task = async (
 	endpoint: string | null,
@@ -45,26 +47,28 @@ const Task = async (
 	};
 };
 
-export const cachedRedis = async (c: Context) => {
+export const cachedRedis = async (_: Request, res: Response) => {
 	try {
-		const { env } = c;
-		await env.CACHE_TIDTU.put("isUpdated", "true", { expirationTtl: 120 });
+		await KV.put("isUpdated", "true", { expirationTtl: 120 });
 		const task1 = await Task("", [], 7);
 		const task2 = await Task(task1.meta.nextPagination, [], 0, true);
-		await env.CACHE_TIDTU.put("examList:frequency", JSON.stringify(task1));
-		await env.CACHE_TIDTU.put("examList:total", JSON.stringify(task2));
-		await env.CACHE_TIDTU.delete("isUpdated");
+		await KV.put("examList:frequency", JSON.stringify(task1));
+		await KV.put("examList:total", JSON.stringify(task2));
+		await KV.delete("isUpdated");
 
-		c.status(201);
-		return c.json({
+		logger.info("create cache KV successfull");
+
+		res.status(201).json({
 			success: true,
 			message: "create cache redis successfull",
+			data: null,
 		});
 	} catch (error: any) {
-    c.status(500);
-    return c.json({
-      success: false,
-      message: "something went wrong",
-    });
+		logger.error(error.message);
+		res.status(500).json({
+			success: false,
+			message: "something went wrong",
+			data: null,
+		});
 	}
 };

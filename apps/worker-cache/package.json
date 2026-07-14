@@ -1,18 +1,35 @@
 {
 	"name": "worker-cache",
+	"version": "1.0.0",
+	"description": "",
+	"main": "./dist/app.js",
 	"scripts": {
-		"dev": "wrangler --port 3005 dev",
-		"deploy": "wrangler deploy --minify",
-		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
+		"clean": "rm -rf dist",
+		"build": "pnpm run clean && tsc && tsc-alias",
+		"start": "node dist/app.js",
+		"dev": "nodemon -r tsconfig-paths/register src/app.ts"
 	},
+	"keywords": [],
+	"author": "ngtuonghy",
+	"license": "ISC",
 	"dependencies": {
-		"hono": "^4.6.16",
 		"axios": "^1.7.9",
 		"cheerio": "^1.0.0",
+		"cloudflare": "^3.5.0",
+		"cors": "^2.8.5",
+		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
 		"winston": "^3.17.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241230.0",
-		"wrangler": "^3.96.0"
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"@types/node": "^22.10.2",
+		"concurrently": "^9.1.1",
+		"nodemon": "^3.1.9",
+		"ts-node": "^10.9.2",
+		"tsc-alias": "^1.8.10",
+		"tsconfig-paths": "^4.2.0",
+		"typescript": "^5.7.2"
 	}
 }
