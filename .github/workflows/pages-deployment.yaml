@@ -1,13 +1,16 @@
 name: Deploy to Cloudflare Pages
 on:
-  push:
+  pull_request:
     branches:
       - main
+    types:
+      - closed
     paths:
       - 'apps/website/**'
       - '.github/workflows/pages-deployment.yaml'
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: read

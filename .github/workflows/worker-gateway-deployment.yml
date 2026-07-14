@@ -1,13 +1,16 @@
 name: Deploy to workers gateway
 on:
-  push:
+  pull_request:
     branches:
       - main
+    types:
+      - closed
     paths:
       - 'apps/worker-gateway/**'
       - '.github/workflows/worker-gateway-deployment.yml'
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: read
