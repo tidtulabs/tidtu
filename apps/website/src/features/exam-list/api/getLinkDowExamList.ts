@@ -2,7 +2,7 @@ import { HttpError } from "./HttpError";
 
 export const getLinkDowExamList = async (id: string) => {
 	const response = await fetch(
-		`${import.meta.env.VITE_EXAMLIST_SERVICE}/api/v1/pdaotao/scraping/examlist/${id}`,
+		`${import.meta.env.VITE_GATEWAY_SERVICE}/api/v1/pdaotao/scraping/examlist/${id}`,
 		{
 			credentials: "include",
 		},

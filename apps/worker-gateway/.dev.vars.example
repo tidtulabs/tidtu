@@ -1,0 +1,9 @@
+# Local development secrets for `wrangler dev`
+# These values are NEVER committed or deployed — they are dev-only overrides.
+# Production secrets are set via: wrangler secret put <NAME>
+
+# Cloudflare Turnstile test secret key (always passes validation)
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# Discord webhook — replace with a real test channel webhook for local testing
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/REPLACE_ME

@@ -8,6 +8,9 @@ enabled = true
 
 [vars]
 CORS_ORIGIN = "https://tidtu.pages.dev"
+# TURNSTILE_SECRET_KEY and DISCORD_WEBHOOK_URL are secrets — set via:
+#   wrangler secret put TURNSTILE_SECRET_KEY
+#   wrangler secret put DISCORD_WEBHOOK_URL
 
 
 [[services]]

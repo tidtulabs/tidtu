@@ -4,6 +4,8 @@ import {
   IconLoader3,
   IconHelpOctagon,
   IconSparkles,
+  IconAdjustmentsHorizontal,
+  IconX,
 } from "@tabler/icons-vue";
 import type {
   ColumnDef,
@@ -18,7 +20,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { h, onMounted, ref } from "vue";
+import { h, onMounted, onUnmounted, ref } from "vue";
 import {
   Table,
   TableBody,
@@ -28,12 +30,14 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -42,7 +46,11 @@ import {
 } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import ExamListLoading from "./ExamListLoading.vue";
-import { toast } from "@/components/ui/toast";
+import QuickBugButton from "@/components/QuickBugButton.vue";
+import { HttpError } from "../api/HttpError";
+
+const currentUrl = window.location.href;
+import { toast } from "vue-sonner";
 import { getExamList } from "../api/getExamList";
 import { updateExamList } from "../api/updateExamList";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
@@ -95,7 +103,6 @@ const { isPending, isFetching, isError, error } = useQuery({
   queryKey: ["get-exam-list"],
   queryFn: async () => {
     const data = await getExamList(false);
-    // console.log(data);
     if (!data.success) {
       return;
     }
@@ -140,10 +147,8 @@ const fetchMore = async (isChecked: boolean) => {
         }
       } catch (error: any) {
         console.error("Fetch failed:", error);
-        toast({
-          title: "Lỗi",
+        toast.error("Lỗi", {
           description: error?.message || "Đã xảy ra lỗi khi tải thêm dữ liệu",
-          variant: "error",
         });
       } finally {
         fetchingFlag.value.isFetching = false;
@@ -163,56 +168,87 @@ const columnVisibility = ref<VisibilityState>({
   page: true,
 });
 
+const showUploadDateOnMobile = ref(false);
+const showPageOnMobile = ref(false);
+
+const toggleUploadDate = (checked: boolean) => {
+  showUploadDateOnMobile.value = checked;
+  columnVisibility.value = {
+    ...columnVisibility.value,
+    uploadDate: checked,
+  };
+};
+
+const togglePage = (checked: boolean) => {
+  showPageOnMobile.value = checked;
+  columnVisibility.value = {
+    ...columnVisibility.value,
+    page: checked,
+  };
+};
+
 const updateColumnVisibility = () => {
   const isMd = window.matchMedia("(max-width: 768px)").matches;
   if (isMd) {
     columnVisibility.value = {
       ...columnVisibility.value,
-      dateUpload: false,
+      uploadDate: showUploadDateOnMobile.value,
+      page: showPageOnMobile.value,
     };
   } else {
     columnVisibility.value = {
       ...columnVisibility.value,
-      dateUpload: true,
+      uploadDate: true,
+      page: true,
     };
   }
 };
 
+onMounted(() => {
+  updateColumnVisibility();
+  window.addEventListener("resize", updateColumnVisibility);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateColumnVisibility);
+});
+
 const columns: ColumnDef<ExamItem>[] = [
   {
-    accessorKey: "uploadDate",
-    header: "Ngày tải lên",
-    cell: ({ row }) =>
-      h("div", { class: "capitalize" }, row.getValue("uploadDate")),
+    accessorKey: "examTitle",
+    header: "Tên Đề Thi / Môn Học",
+    cell: ({ row }) => {
+      const text = row.getValue("examTitle");
+      const isNew = row.getValue("isNew");
+      return h("div", { class: "flex gap-2 items-start min-w-0" }, [
+        h("span", { class: "font-medium text-foreground break-words min-w-0 flex-1" }, text as string),
+        isNew
+          ? h(IconSparkles, {
+              class: "w-4 h-4 text-yellow-500 animate-pulse stroke-1.5 shrink-0 mt-0.5",
+            })
+          : null,
+      ]);
+    },
   },
 
-  {
-    accessorKey: "isNew",
-  },
   {
     id: "page",
     accessorFn: (row) => {
       return `${row.pagination}:${row.row} `;
     },
     header: "Số trang",
+    cell: ({ row }) => h("div", { class: "text-foreground text-sm" }, row.getValue("page")),
   },
+
   {
-    accessorKey: "examTitle",
-    header: "Mã Thi",
-    cell: ({ row }) => {
-      const text = row.getValue("examTitle");
-      const isNew = row.getValue("isNew");
-      return h("div", { class: "flex gap-2 items-center " }, [
-        text as string,
-        h("span", { class: "text-xs text-gray-500" }, [
-          isNew
-            ? h(IconSparkles, {
-                class: "w-6 h-6 text-yellow-500 animate-pulse stroke-1",
-              })
-            : null,
-        ]),
-      ]);
-    },
+    accessorKey: "uploadDate",
+    header: "Ngày tải lên",
+    cell: ({ row }) =>
+      h("div", { class: "capitalize text-foreground text-sm" }, row.getValue("uploadDate")),
+  },
+
+  {
+    accessorKey: "isNew",
   },
 
   {
@@ -241,32 +277,29 @@ const columns: ColumnDef<ExamItem>[] = [
           } else {
             row.original.isDown = false;
             if (res.typeError === "NOT_FOUND") {
-              toast({
-                title: "Lỗi",
+              toast.error("Lỗi", {
                 description: "Không tìm thấy tệp tin tải xuống",
-                variant: "error",
               });
             }
             if (res.typeError === "SERVER_ERROR") {
-              toast({
-                title: "Lỗi",
+              toast.error("Lỗi", {
                 description: "Lỗi server, vui lòng thử lại sau",
-                variant: "error",
               });
             }
           }
         } catch (error: any) {
           row.original.isDown = false;
-          toast({
-            title: "Lỗi",
+          toast.error("Lỗi", {
             description: error?.message || "Đã xảy ra lỗi khi tải xuống",
-            variant: "error",
           });
         }
       };
       return h(
         "div",
         {
+          role: "button",
+          "aria-label": `Tải xuống ${row.original.examTitle}`,
+          title: "Tải xuống đề thi",
           onClick: () => {
             handleClick();
           },
@@ -278,7 +311,7 @@ const columns: ColumnDef<ExamItem>[] = [
             })
           : h(IconFileDownload, {
               class:
-                "w-7 h-7 stroke-[1.25] cursor-pointer mx-auto text-primary/80 hover:text-primary hover:scale-150 transition-transform ease-in-out",
+                "w-7 h-7 stroke-[1.25] cursor-pointer mx-auto text-primary/80 hover:text-primary hover:scale-110 transition-transform ease-in-out",
             }),
       );
     },
@@ -289,17 +322,14 @@ function valueUpdater<T>(
   updaterOrValue: T | ((prev: T) => T),
   currentValue: T,
 ): T {
-  // If updaterOrValue is a function, call it with the current value
   if (typeof updaterOrValue === "function") {
     return (updaterOrValue as (prev: T) => T)(currentValue);
   }
-
-  // If it's not a function, directly return the new value
   return updaterOrValue;
 }
 
 const table = useVueTable({
-  data: exams, // Ensure data is always an array
+  data: exams,
   columns,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -331,142 +361,230 @@ const table = useVueTable({
   </div>
   <div
     v-else-if="isError"
-    class="flex-1 flex flex-col items-center justify-center"
+    class="flex-1 flex flex-col items-center justify-center gap-4"
   >
-    <p class="text-red-500 text-3xl">{{ error?.message || "Lỗi khi tải dữ liệu" }}</p>
-    <p>Vui lòng thử lại sau!</p>
+    <p class="text-destructive text-3xl">{{ error?.message || "Lỗi khi tải dữ liệu" }}</p>
+    <p class="text-muted-foreground text-sm">Vui lòng thử lại sau!</p>
+    <QuickBugButton
+      v-if="(error as any)?.status !== 429"
+      :context="{
+        message: (error as any)?.message || 'Lỗi khi tải dữ liệu',
+        page: currentUrl,
+      }"
+    />
   </div>
-  <div v-else class="flex-1 flex flex-col gap-5">
-    <div class="relative w-full max-w-xl m-auto">
-      <Input
-        id="search"
-        type="text"
-        placeholder="Tìm kiếm"
-        class="pl-10 w-full"
-        :model-value="table.getColumn('examTitle')?.getFilterValue() as string"
-        @update:model-value="
-          table.getColumn('examTitle')?.setFilterValue($event)
-        "
-      />
-      <span
-        class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="size-6 text-muted-foreground"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-          />
-        </svg>
-      </span>
-    </div>
-
-    <div class="flex gap-3 items-center">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger class="flex items-center w-fit gap-3">
-            <Switch
-              id="term"
-              @update:checked="fetchMore"
-              :disabled="fetchingFlag.isFetching"
-            />
-            <Label for="term">Tất cả</Label>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Bật để lấy tất cả trang</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <div class="relative">
-        <p>
-          ({{ exams[exams.length - 1].pagination }}
-          trang đã được tải)
-        </p>
+  <div v-else class="flex-1 flex flex-col gap-0 relative -mt-6 lg:-mt-8">
+    <!-- Top Action Bar (Search + Config Switch) - Sticky with Glassmorphism -->
+    <div class="sticky top-[57px] group-[.header-hidden]/layout:top-0 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 w-full border-b border-border/60">
+      <!-- Search Input Wrapper -->
+      <div class="relative w-full md:max-w-md min-w-0">
+        <Input
+          id="search"
+          type="text"
+          placeholder="Tìm kiếm mã thi, môn học..."
+          class="pl-9 pr-8 w-full bg-background h-9 text-sm"
+          :model-value="table.getColumn('examTitle')?.getFilterValue() as string"
+          @update:model-value="
+            table.getColumn('examTitle')?.setFilterValue($event)
+          "
+        />
         <span
-          v-if="fetchingFlag.isFetching"
-          class="absolute flex h-3 w-3 top-[-10px] right-0"
+          class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
         >
-          <span
-            class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-            :class="[fetchingFlag.isAuto ? 'bg-primary' : 'bg-blue-500']"
-          ></span>
-          <span
-            class="relative inline-flex rounded-full h-3 w-3"
-            :class="[fetchingFlag.isAuto ? 'bg-primary' : 'bg-blue-500']"
-          ></span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4 text-muted-foreground"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
         </span>
+        <!-- Clear 'X' Button -->
+        <button
+          v-if="columnFilters.find(f => f.id === 'examTitle')?.value"
+          @click="table.getColumn('examTitle')?.setFilterValue('')"
+          class="absolute end-0 inset-y-0 flex items-center justify-center px-2.5 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Xóa nội dung tìm kiếm"
+        >
+          <IconX class="w-4 h-4" />
+        </button>
       </div>
-      <Popover>
-        <PopoverTrigger>
-          <IconHelpOctagon class="w-5 h-5 text-primary" />
-        </PopoverTrigger>
-        <PopoverContent>
-          <p>Theo mặc định hệ thống tự tải những danh sách mới nhất</p>
-          <p>
-            <span class="text-primary">Màu đỏ</span> Hệ thống đang tự tải trang
-          </p>
-          <p>
-            <span class="text-blue-500">Màu xanh biển</span> Chức năng lấy tất
-            đang được bật
-          </p>
-        </PopoverContent>
-      </Popover>
+
+      <!-- Action Controls Wrapper -->
+      <div class="flex items-center justify-between md:justify-end gap-4 text-sm w-full md:w-auto">
+        <div class="flex items-center gap-3">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger class="flex items-center gap-2">
+                <Switch
+                  id="term"
+                  class="scale-90 sm:scale-100"
+                  @update:model-value="fetchMore"
+                  :disabled="fetchingFlag.isFetching"
+                />
+                <Label for="term" class="cursor-pointer font-medium text-foreground text-xs sm:text-sm whitespace-nowrap">
+                  Tải tất cả
+                </Label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Bật để tải tất cả các trang đề thi từ hệ thống trường</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div class="flex items-center gap-2 text-muted-foreground shrink-0 h-8">
+            <!-- Mobile Badge (Stable layout) -->
+            <span 
+              class="md:hidden flex items-center gap-1.5 bg-muted px-2.5 py-0.5 rounded-full text-[10px] font-semibold border h-6 shrink-0 transition-all duration-300"
+              :class="fetchingFlag.isFetching ? 'border-primary bg-primary/5 text-primary animate-pulse' : 'border-border text-muted-foreground'"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>{{ exams[exams.length - 1]?.pagination || 0 }}tr</span>
+            </span>
+
+            <!-- Desktop Badge (Stable layout) -->
+            <span 
+              class="hidden md:flex items-center gap-1.5 bg-muted px-3 py-1 rounded-full text-xs font-medium border h-7 shrink-0 transition-all duration-300"
+              :class="fetchingFlag.isFetching ? 'border-primary bg-primary/5 text-primary animate-pulse' : 'border-border text-muted-foreground'"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span>Đã đồng bộ {{ exams[exams.length - 1]?.pagination || 0 }} trang</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Settings Popover -->
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button variant="outline" size="icon" class="h-9 w-9 rounded-md border border-border bg-background hover:bg-muted shrink-0" aria-label="Cấu hình hiển thị">
+              <IconAdjustmentsHorizontal class="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-48 p-3" align="end">
+            <div class="space-y-3">
+              <h4 class="font-bold text-[10px] uppercase tracking-wider text-muted-foreground">Cấu hình hiển thị</h4>
+              
+              <!-- Toggle uploadDate -->
+              <div class="flex items-center justify-between gap-2">
+                <Label for="toggle-date" class="text-xs font-medium text-foreground cursor-pointer">Ngày tải lên</Label>
+                <Switch
+                  id="toggle-date"
+                  class="scale-75 origin-right"
+                  :model-value="columnVisibility.uploadDate !== false"
+                  @update:model-value="toggleUploadDate"
+                />
+              </div>
+
+              <!-- Toggle page -->
+              <div class="flex items-center justify-between gap-2">
+                <Label for="toggle-page" class="text-xs font-medium text-foreground cursor-pointer">Số trang</Label>
+                <Switch
+                  id="toggle-page"
+                  class="scale-75 origin-right"
+                  :model-value="columnVisibility.page !== false"
+                  @update:model-value="togglePage"
+                />
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
 
-    <Table>
-      <TableHeader>
-        <TableRow
-          v-for="headerGroup in table.getHeaderGroups()"
-          :key="headerGroup.id"
-        >
-          <TableHead
-            :class="[
-              'font-bold text-primary ',
-              header.column.id === 'examDetailsUrl'
-                ? 'text-center'
-                : 'text-left',
-            ]"
-            v-for="header in headerGroup.headers"
-            :key="header.id"
-          >
-            <FlexRender
-              :render="header.column.columnDef.header"
-              :props="header.getContext()"
-            />
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+    <!-- Table Container Card -->
+    <div class="pt-4 pb-4 md:pb-6 flex flex-col gap-6 w-full">
+      <div class="border-y border-x border-border rounded-lg bg-card  overflow-hidden">
+        <div class="overflow-x-auto">
+          <Table :class="[(showUploadDateOnMobile || showPageOnMobile) ? 'min-w-[600px]' : '', 'sm:min-w-0']">
+            <TableHeader>
+              <TableRow
+                v-for="headerGroup in table.getHeaderGroups()"
+                :key="headerGroup.id"
+              >
+                <TableHead
+                  v-for="header in headerGroup.headers"
+                  :key="header.id"
+                  :class="[
+                    'font-bold text-primary py-2.5 px-2 sm:px-4 text-xs sm:text-sm uppercase tracking-wide',
+                    header.column.id === 'examDetailsUrl'
+                      ? 'text-center w-24 shrink-0 whitespace-nowrap'
+                      :                       header.column.id === 'examTitle'
+                        ? 'text-left w-full whitespace-normal'
+                        : 'text-left whitespace-nowrap',
+                  ]"
+                >
+                  <FlexRender
+                    :render="header.column.columnDef.header"
+                    :props="header.getContext()"
+                  />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-      <TableBody class="text-base">
-        <template v-if="table.getRowModel().rows?.length">
-          <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
-            <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-              <FlexRender
-                :render="cell.column.columnDef.cell"
-                :props="cell.getContext()"
-              />
-            </TableCell>
-          </TableRow>
-        </template>
-        <template v-else>
-          <TableRow>
-            <TableCell :colspan="columns.length" class="h-24 text-center">
-              Không có dữ liệu
-            </TableCell>
-          </TableRow>
-        </template>
-      </TableBody>
-    </Table>
+            <TableBody class="text-sm sm:text-base divide-y divide-border">
+              <template v-if="table.getRowModel().rows?.length">
+                <TableRow 
+                  v-for="row in table.getRowModel().rows" 
+                  :key="row.id"
+                  class="hover:bg-muted/50 transition-colors"
+                >
+                  <TableCell
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    :class="[
+                      'py-2 px-2 sm:px-4 min-w-0 font-medium text-foreground',
+                      cell.column.id === 'examTitle' ? 'max-w-0 w-full whitespace-normal break-words' : '',
+                      cell.column.id === 'examDetailsUrl' ? 'w-24 shrink-0 text-center' : '',
+                    ]"
+                  >
+                    <FlexRender
+                      :render="cell.column.columnDef.cell"
+                      :props="cell.getContext()"
+                    />
+                  </TableCell>
+                </TableRow>
 
-    <div v-if="fetchingFlag.isFetching">
-      <ExamListLoading :isShowHeader="false" />
+                <!-- Skeleton Rows inside the TableBody during fetch -->
+                <template v-if="fetchingFlag.isFetching">
+                  <TableRow v-for="i in 3" :key="'skeleton-' + i" class="hover:bg-transparent">
+                    <TableCell
+                      v-for="column in table.getVisibleFlatColumns()"
+                      :key="column.id"
+                      :class="[
+                        'py-2.5 px-2 sm:px-4 min-w-0',
+                        column.id === 'examTitle' ? 'max-w-0 w-full whitespace-normal break-words' : '',
+                        column.id === 'examDetailsUrl' ? 'w-24 shrink-0 text-center' : '',
+                      ]"
+                    >
+                      <Skeleton
+                        :class="[
+                          'h-4 animate-pulse',
+                          column.id === 'examTitle' ? 'w-3/4' : 'w-12',
+                          column.id === 'examDetailsUrl' ? 'h-8 w-8 rounded-md mx-auto' : 'rounded'
+                        ]"
+                      />
+                    </TableCell>
+                  </TableRow>
+                </template>
+              </template>
+              <template v-else>
+                <TableRow>
+                  <TableCell :colspan="columns.length" class="h-32 text-center text-muted-foreground">
+                    Không có dữ liệu đề thi
+                  </TableCell>
+                </TableRow>
+              </template>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, useRouter } from "vue-router";
-import { IconBook } from "@tabler/icons-vue";
+import { IconBook, IconMessageReport } from "@tabler/icons-vue";
+
 const router = useRouter();
 
 const navItems = [
@@ -8,7 +9,11 @@ const navItems = [
     title: "Danh sách thi",
     icon: IconBook,
     to: "/pdaotao/examlist",
-    active: router.currentRoute.value.path === "/pdaotao/examlist",
+  },
+  {
+    title: "Góp ý & Báo lỗi",
+    icon: IconMessageReport,
+    to: "/pdaotao/feedback",
   },
 ];
 
@@ -18,31 +23,33 @@ const handleClick = () => {
   emit('update:open', false);
 };
 </script>
+
 <template>
-  <div class="flex flex-col" v-for="item in navItems">
-    <RouterLink
-       @click="handleClick"
-      :to="item.to"
-      class="group flex items-center lg:text-sm lg:leading-6 mb-4 font-semibold dark:text-sky-400 border-5 border-l-primary"
-    >
-      <component
-        :is="item.icon"
-        :class="{
-          'bg-primary text-white': router.currentRoute.value.path === item.to,
-          'bg-inherit text-gray-600':
-            router.currentRoute.value.path !== item.to,
-        }"
-        class="w-6 h-6 mr-4 rounded-md ring-1 ring-slate-900/5 shadow-sm group-hover:bg-primary group-hover:text-white ease-in-out"
-      />
-      <h2
-        class="text-base text-gray-600"
-        :class="{
-          'text-primary': router.currentRoute.value.path === item.to,
-          'text-gray-600': router.currentRoute.value.path !== item.to,
-        }"
+  <div class="flex flex-col">
+    <div class="space-y-1">
+      <RouterLink
+        v-for="item in navItems"
+        :key="item.to"
+        @click="handleClick"
+        :to="item.to"
+        class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200"
+        :class="[
+          router.currentRoute.value.path === item.to
+            ? 'bg-primary/10 text-primary font-semibold'
+            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+        ]"
       >
-        {{ item.title }}
-      </h2>
-    </RouterLink>
+        <component
+          :is="item.icon"
+          class="w-4 h-4 shrink-0"
+          :class="[
+            router.currentRoute.value.path === item.to
+              ? 'text-primary'
+              : 'text-muted-foreground'
+          ]"
+        />
+        <span>{{ item.title }}</span>
+      </RouterLink>
+    </div>
   </div>
 </template>

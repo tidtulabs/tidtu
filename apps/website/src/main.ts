@@ -1,4 +1,4 @@
-import "./assets/styles/index.css";
+import "./style.css";
 
 import { createApp } from "vue";
 import App from "./App.vue";
@@ -12,5 +12,5 @@ createApp(App)
 	.use(VueGtag, {
 		config: { id: "G-F1TX2BDFSE" },
 	})
-  .use(VueQueryPlugin)
+	.use(VueQueryPlugin)
 	.mount("#app");

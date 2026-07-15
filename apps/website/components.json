@@ -1,18 +1,27 @@
 {
   "$schema": "https://shadcn-vue.com/schema.json",
-  "style": "default",
+  "style": "reka-nova",
+  "font": "roboto",
   "typescript": true,
-  "tsConfigPath": "./tsconfig.json",
   "tailwind": {
     "config": "tailwind.config.js",
-    "css": "src/assets/styles/index.css",
-    "baseColor": "slate",
+    "css": "src/style.css",
+    "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
   },
-  "framework": "vite",
+  "iconLibrary": "tabler",
+  "rtl": false,
+  "pointer": false,
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils"
-  }
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "composables": "@/composables"
+  },
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "fontHeading": "roboto",
+  "registries": {}
 }

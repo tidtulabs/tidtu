@@ -28,8 +28,9 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: Run build
         env:
-          VITE_EXAMLIST_SERVICE: ${{ vars.VITE_EXAMLIST_SERVICE }}
+          VITE_GATEWAY_SERVICE: ${{ vars.VITE_GATEWAY_SERVICE }}
           VITE_CACHE_SERVICE: ${{ vars.VITE_CACHE_SERVICE }}
+          VITE_TURNSTILE_SITEKEY: ${{ vars.VITE_TURNSTILE_SITEKEY}}
         run: pnpm --filter website run build
       - name: Publish
         uses: cloudflare/pages-action@v1

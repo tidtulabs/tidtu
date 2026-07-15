@@ -1,55 +1,60 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
-import { X } from 'lucide-vue-next'
+import { IconX } from '@tabler/icons-vue';
+
+import type { DialogContentEmits, DialogContentProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
 import {
   DialogClose,
   DialogContent,
-  type DialogContentEmits,
-  type DialogContentProps,
-  DialogOverlay,
   DialogPortal,
   useForwardPropsEmits,
-} from 'radix-vue'
-import { computed, type HTMLAttributes } from 'vue'
-import { type SheetVariants, sheetVariants } from '.'
+} from "reka-ui"
+import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button'
+import SheetOverlay from "./SheetOverlay.vue"
 
 interface SheetContentProps extends DialogContentProps {
-  class?: HTMLAttributes['class']
-  side?: SheetVariants['side']
+  class?: HTMLAttributes["class"]
+  side?: "top" | "right" | "bottom" | "left"
+  showCloseButton?: boolean
 }
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = defineProps<SheetContentProps>()
-
+const props = withDefaults(defineProps<SheetContentProps>(), {
+  side: "right",
+  showCloseButton: true,
+})
 const emits = defineEmits<DialogContentEmits>()
 
-const delegatedProps = computed(() => {
-  const { class: _, side, ...delegated } = props
-
-  return delegated
-})
+const delegatedProps = reactiveOmit(props, "class", "side", "showCloseButton")
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
   <DialogPortal>
-    <DialogOverlay
-      class="fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-    />
+    <SheetOverlay />
     <DialogContent
-      :class="cn(sheetVariants({ side }), props.class)"
-      v-bind="{ ...forwarded, ...$attrs }"
+      data-slot="sheet-content"
+      :data-side="side"
+      :class="cn('bg-popover text-popover-foreground fixed z-50 flex flex-col gap-4 bg-clip-padding text-sm shadow-lg transition-all duration-200 ease-in-out data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm data-[state=open]:opacity-100 data-[state=closed]:opacity-0 data-[side=right]:data-[state=open]:translate-x-0 data-[side=right]:data-[state=closed]:translate-x-full data-[side=left]:data-[state=open]:translate-x-0 data-[side=left]:data-[state=closed]:-translate-x-full data-[side=top]:data-[state=open]:translate-y-0 data-[side=top]:data-[state=closed]:-translate-y-full data-[side=bottom]:data-[state=open]:translate-y-0 data-[side=bottom]:data-[state=closed]:translate-y-full', props.class)"
+      v-bind="{ ...$attrs, ...forwarded }"
     >
       <slot />
 
       <DialogClose
-        class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
+        v-if="showCloseButton"
+        data-slot="sheet-close"
+        as-child
       >
-        <X class="w-4 h-4 text-muted-foreground" />
+        <Button variant="ghost" class="absolute top-3 right-3" size="icon-sm">
+          <IconX />
+          <span class="sr-only">Close</span>
+        </Button>
       </DialogClose>
     </DialogContent>
   </DialogPortal>

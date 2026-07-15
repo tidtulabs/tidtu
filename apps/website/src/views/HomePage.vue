@@ -33,7 +33,7 @@ const cards = [
 </script>
 
 <template>
-  <div class="flex flex-col container lg:py-8 py-6">
+  <div class="flex flex-col container lg:py-8 py-6 mx-auto">
     <div>
       <h1
         class="lg:text-5xl md:text-4xl text-3xl text-primary text-center font-bold tracking-tight"
@@ -52,7 +52,7 @@ const cards = [
             <component :is="card.title" class="w-10 h-10 text-primary group-hover:scale-125 transition-transform duration-300" />
           </CardTitle>
           <CardDescription
-            class="font-semibold text-lg text-black dark:text-white line-clamp-3"
+            class="font-semibold text-lg text-foreground line-clamp-3"
           >
             {{ card.description }}
           </CardDescription>
@@ -67,11 +67,11 @@ const cards = [
           :to="card.href"
           rel="noopener noreferrer"
         >
-          <CardFooter>
+          <div class="rounded-b-xl px-4 py-2 group-data-[size=sm]/card:p-3 flex items-center" >
             <Button>
               {{ card.footer }}
             </Button>
-          </CardFooter>
+          </div>
         </component>
       </Card>
     </div>

@@ -24,6 +24,11 @@ const routes = [
 				component: ExamListPage,
 				meta: { title: "Danh sách thi | TIDTU" },
 			},
+			{
+				path: "feedback",
+				component: () => import("@/views/FeedbackView.vue"),
+				meta: { title: "Góp ý & Báo lỗi | TIDTU" },
+			},
 		],
 	},
 	{

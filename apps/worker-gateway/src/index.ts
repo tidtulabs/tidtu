@@ -60,6 +60,117 @@ app.use("*", async (c, next) => {
 	await next();
 });
 
+// ──────────────────────────────────────────
+// POST /api/v1/feedback
+// ──────────────────────────────────────────
+app.post("/api/v1/feedback", async (c) => {
+	const contentType = c.req.header("Content-Type") || "";
+	const isMultipart = contentType.includes("multipart/form-data");
+
+	let type: "feedback" | "bug" = "feedback";
+	let title: string | undefined;
+	let content: string;
+	let turnstileToken: string;
+	let quick: boolean = false;
+	const images: { file: File; name: string }[] = [];
+
+	if (isMultipart) {
+		const formData = await c.req.formData();
+		type = (formData.get("type") as "feedback" | "bug") || "feedback";
+		title = (formData.get("title") as string) || undefined;
+		content = (formData.get("content") as string) || "";
+		turnstileToken = (formData.get("turnstileToken") as string) || "";
+		quick = formData.get("quick") === "true";
+
+		for (let i = 0; i < 3; i++) {
+			const file = formData.get(`image${i}`) as File | null;
+			if (file && file.size > 0 && file.type.startsWith("image/")) {
+				const ext = file.name?.split(".").pop() || "png";
+				images.push({ file, name: `feedback_img_${i}.${ext}` });
+			}
+		}
+	} else {
+		try {
+			const body = await c.req.json<any>();
+			type = body.type || "feedback";
+			title = body.title || undefined;
+			content = body.content;
+			turnstileToken = body.turnstileToken;
+			quick = body.quick === true;
+		} catch {
+			return c.json({ error: "Invalid JSON body" }, 400);
+		}
+	}
+
+	if (!content?.trim()) {
+		return c.json({ error: "Nội dung không được để trống" }, 400);
+	}
+
+	// Quick auto-reports skip Turnstile (rate limiter still applies)
+	if (!quick) {
+		if (!turnstileToken) {
+			return c.json({ error: "Thiếu mã xác thực Turnstile" }, 400);
+		}
+
+		const turnstileForm = new FormData();
+		turnstileForm.append("secret", c.env.TURNSTILE_SECRET_KEY);
+		turnstileForm.append("response", turnstileToken);
+		const verifyRes = await fetch(
+			"https://challenges.cloudflare.com/turnstile/v0/siteverify",
+			{ method: "POST", body: turnstileForm }
+		);
+		const { success: tokenValid } = await verifyRes.json<{ success: boolean }>();
+		if (!tokenValid) {
+			return c.json({ error: "Xác thực bảo mật thất bại" }, 400);
+		}
+	}
+
+	// 2. Forward to Discord webhook
+	const isBug = type === "bug";
+	const embed: Record<string, any> = {
+		title: title?.trim()
+			? (isBug ? `🐞 ${title.trim()}` : `💡 ${title.trim()}`)
+			: (isBug ? "🐞 Báo cáo lỗi mới" : "💡 Ý kiến góp ý mới"),
+		description: content.trim(),
+		color: isBug ? 0xff4444 : 0x5865f2,
+		footer: { text: quick ? "TIDTU Hệ thống" : "TIDTU Feedback" },
+		timestamp: new Date().toISOString(),
+	};
+
+	let webhookRes: Response;
+
+	if (images.length > 0) {
+		embed.image = { url: `attachment://${images[0].name}` };
+		if (images.length > 1) {
+			embed.description += `\n\n📎 *+${images.length - 1} ảnh đính kèm*`;
+		}
+
+		const discordForm = new FormData();
+		discordForm.append("payload_json", JSON.stringify({ embeds: [embed] }));
+		for (const img of images) {
+			discordForm.append("file", img.file, img.name);
+		}
+
+		webhookRes = await fetch(c.env.DISCORD_WEBHOOK_URL, {
+			method: "POST",
+			body: discordForm,
+		});
+	} else {
+		webhookRes = await fetch(c.env.DISCORD_WEBHOOK_URL, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ embeds: [embed] }),
+		});
+	}
+
+	if (!webhookRes.ok) {
+		console.error("Discord webhook failed:", await webhookRes.text());
+		return c.json({ error: "Không thể gửi feedback, vui lòng thử lại" }, 502);
+	}
+
+	return c.json({ success: true }, 200);
+});
+
 app.all("*", async (c) => {
 	const clones = [c.env.CLONE_1, c.env.CLONE_2, c.env.CLONE_3].filter(
 		(clone): clone is Fetcher => clone !== undefined

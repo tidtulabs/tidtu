@@ -26,8 +26,10 @@ const open = ref(false);
 <template>
   <div class="flex w-full justify-between items-center">
     <RouterLink to="/" class="flex items-center gap-1">
-      <Logo />
-      <h1 class="font-bold md:text-2xl text-xl">TIDTU</h1>
+      <div>
+        <Logo />
+      </div>
+      <h1 class="font-bold md:text-2xl text-xl leading-none">TIDTU</h1>
     </RouterLink>
     <div class="flex gap-2 items-center">
       <h3
@@ -37,14 +39,13 @@ const open = ref(false);
       </h3>
       <a href="https://github.com/tidtulabs" target="_blank">
         <button
-          class="rounded-md gap-x-1.5 p-1.5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+          class="rounded-md gap-x-1.5 p-1.5 text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors duration-200"
         >
-          <!--   <githubIcon class="w-6 h-6" /> -->
           <IconBrandGithub class="w-6 h-6" />
         </button>
       </a>
       <button
-        class="rounded-md gap-x-1 p-1 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+        class="rounded-md gap-x-1 p-1 text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors duration-200"
       >
         <IconSunMoon
           v-if="colorMode === 'auto'"
@@ -70,14 +71,9 @@ const open = ref(false);
             <IconMenu2 class="w-6 h-6 hover:text-primary"
           /></SheetTrigger>
           <SheetContent>
-            <!-- <SheetHeader> -->
-            <!-- <SheetTitle>Are you absolutely sure?</SheetTitle> -->
-            <!-- <SheetDescription> -->
-            <!--   This action cannot be undone. This will permanently delete your -->
-            <!--   account and remove your data from our servers. -->
-            <!-- </SheetDescription> -->
-            <NavBarMobileView :open="open" @update:open="open = $event" />
-            <!-- </SheetHeader> -->
+            <div class="px-4 pt-10">
+              <NavBarMobileView :open="open" @update:open="open = $event" />
+            </div>
           </SheetContent>
         </Sheet>
       </div>

@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from "node:url";
 import autoprefixer from "autoprefixer";
-import tailwind from "tailwindcss";
+import tailwindcss from '@tailwindcss/vite'
 
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
@@ -11,10 +11,10 @@ import svgLoader from "vite-svg-loader";
 export default defineConfig({
 	css: {
 		postcss: {
-			plugins: [tailwind(), autoprefixer()],
+			plugins: [autoprefixer()],
 		},
 	},
-	plugins: [vue(), vueDevTools(), svgLoader()],
+	plugins: [vue(), vueDevTools(), svgLoader(), tailwindcss()],
 
 	resolve: {
 		alias: {
