@@ -4,7 +4,7 @@ import HeaderView from "@/views/HeaderView.vue";
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-background">
+  <div class="flex min-h-dvh flex-col bg-background">
     <header class="sticky z-40 top-0 bg-background border-b border-border">
       <div class="container flex h-14 max-w-screen-2xl items-center px-4">
         <HeaderView />
