@@ -70,8 +70,12 @@ const open = ref(false);
           <SheetTrigger>
             <IconMenu2 class="w-6 h-6 hover:text-primary"
           /></SheetTrigger>
-          <SheetContent>
-            <div class="px-4 pt-10">
+          <SheetContent class="px-0 gap-0">
+            <div class="flex items-center gap-2 px-4 h-14 border-b border-border">
+              <Logo class="w-7 h-7" />
+              <span class="font-bold text-base">TIDTU</span>
+            </div>
+            <div class="flex-1 px-3 pt-3">
               <NavBarMobileView :open="open" @update:open="open = $event" />
             </div>
           </SheetContent>

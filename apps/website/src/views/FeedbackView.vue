@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import { useTurnstile } from "@/composables/useTurnstile";
 import { IconX, IconPhotoPlus } from "@tabler/icons-vue";
@@ -200,7 +200,7 @@ async function handleFeedbackSubmit() {
   }
 }
 
-function handleSendAnother() {
+async function handleSendAnother() {
   submitted.value = false;
   title.value = "";
   content.value = "";
@@ -212,7 +212,8 @@ function handleSendAnother() {
     URL.revokeObjectURL(img.url);
   }
   images.value = [];
-  reset();
+  await nextTick();
+  render();
 }
 </script>
 
@@ -256,7 +257,7 @@ function handleSendAnother() {
           </template>
         </p>
       </div>
-      <Button variant="outline" size="sm" @click="handleSendAnother" class="mt-1">
+      <Button variant="outline" @click="handleSendAnother" class="mt-2">
         Gửi thêm
       </Button>
     </div>
