@@ -51,8 +51,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         data-slot="sheet-close"
         as-child
       >
-        <Button variant="ghost" class="absolute top-3 right-3" size="icon-sm">
-          <IconX />
+        <Button variant="ghost" class="absolute top-3 right-3" size="icon">
+          <IconX class="w-5 h-5" />
           <span class="sr-only">Close</span>
         </Button>
       </DialogClose>

@@ -36,7 +36,13 @@ export function useTurnstile(
   const render = () => {
     if (turnstileContainer.value && window.turnstile) {
       if (turnstileWidgetId !== null) {
-        remove();
+        try {
+          window.turnstile.remove(turnstileWidgetId);
+        } catch {
+          // widget container may have been removed from DOM
+        }
+        turnstileWidgetId = null;
+        turnstileToken.value = "";
       }
       try {
         turnstileWidgetId = window.turnstile.render(turnstileContainer.value, {
