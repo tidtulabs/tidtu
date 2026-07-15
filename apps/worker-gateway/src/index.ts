@@ -82,11 +82,11 @@ app.post("/api/v1/feedback", async (c) => {
 		turnstileToken = (formData.get("turnstileToken") as string) || "";
 		quick = formData.get("quick") === "true";
 
-		for (let i = 0; i < 3; i++) {
-			const file = formData.get(`image${i}`) as File | null;
+		{
+			const file = formData.get("image0") as File | null;
 			if (file && file.size > 0 && file.type.startsWith("image/")) {
-				const ext = file.name?.split(".").pop() || "png";
-				images.push({ file, name: `feedback_img_${i}.${ext}` });
+				const ext = (file.name?.split(".").pop() || "png").toLowerCase();
+				images.push({ file, name: `feedback_img.${ext}` });
 			}
 		}
 	} else {
@@ -127,41 +127,37 @@ app.post("/api/v1/feedback", async (c) => {
 
 	// 2. Forward to Discord webhook
 	const isBug = type === "bug";
-	const embed: Record<string, any> = {
-		title: title?.trim()
-			? (isBug ? `🐞 ${title.trim()}` : `💡 ${title.trim()}`)
-			: (isBug ? "🐞 Báo cáo lỗi mới" : "💡 Ý kiến góp ý mới"),
-		description: content.trim(),
-		color: isBug ? 0xff4444 : 0x5865f2,
-		footer: { text: quick ? "TIDTU Hệ thống" : "TIDTU Feedback" },
-		timestamp: new Date().toISOString(),
-	};
-
-	let webhookRes: Response;
+	const embeds: Record<string, any>[] = [
+		{
+			title: title?.trim()
+				? (isBug ? `🐞 ${title.trim()}` : `💡 ${title.trim()}`)
+				: (isBug ? "🐞 Báo cáo lỗi mới" : "💡 Ý kiến góp ý mới"),
+			description: content.trim(),
+			color: isBug ? 0xff4444 : 0x5865f2,
+			footer: { text: quick ? "TIDTU Hệ thống" : "TIDTU Feedback" },
+			timestamp: new Date().toISOString(),
+		},
+	];
 
 	if (images.length > 0) {
-		embed.image = { url: `attachment://${images[0].name}` };
-		if (images.length > 1) {
-			embed.description += `\n\n📎 *+${images.length - 1} ảnh đính kèm*`;
-		}
-
-		const discordForm = new FormData();
-		discordForm.append("payload_json", JSON.stringify({ embeds: [embed] }));
-		for (const img of images) {
-			discordForm.append("file", img.file, img.name);
-		}
-
-		webhookRes = await fetch(c.env.DISCORD_WEBHOOK_URL, {
-			method: "POST",
-			body: discordForm,
-		});
-	} else {
-		webhookRes = await fetch(c.env.DISCORD_WEBHOOK_URL, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ embeds: [embed] }),
+		embeds.push({
+			image: { url: `attachment://${images[0].name}` },
+			color: isBug ? 0xff4444 : 0x5865f2,
 		});
 	}
+
+	const discordForm = new FormData();
+	discordForm.append("payload_json", JSON.stringify({ embeds }));
+	for (const img of images) {
+		const buffer = await img.file.arrayBuffer();
+		const blob = new Blob([buffer], { type: img.file.type });
+		discordForm.append("file", blob, img.name);
+	}
+
+	const webhookRes = await fetch(c.env.DISCORD_WEBHOOK_URL, {
+		method: "POST",
+		body: discordForm,
+	});
 
 	if (!webhookRes.ok) {
 		console.error("Discord webhook failed:", await webhookRes.text());

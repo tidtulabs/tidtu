@@ -20,7 +20,7 @@ import {
 import { toast } from "vue-sonner";
 
 const CONTENT_MAX = 500;
-const MAX_IMAGES = 3;
+const MAX_IMAGES = 1;
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 const feedbackType = ref<"feedback" | "bug">("bug");
@@ -346,28 +346,30 @@ async function handleSendAnother() {
       <div class="space-y-3">
         <Label class="text-sm font-medium text-foreground">
           Ảnh đính kèm
-          <span class="text-muted-foreground font-normal ml-1">(Không bắt buộc, tối đa {{ MAX_IMAGES }} ảnh)</span>
+          <span class="text-muted-foreground font-normal ml-1">(Không bắt buộc)</span>
         </Label>
 
         <div class="flex flex-wrap items-start gap-3">
           <div
             v-for="(img, idx) in images"
             :key="idx"
-            class="relative w-[88px] h-[88px] rounded-lg overflow-hidden border border-border shrink-0 cursor-pointer"
+            class="relative w-[88px] h-[88px] shrink-0 cursor-pointer"
             @click="openImagePreview(img.url)"
           >
-            <img
-              :src="img.url"
-              class="w-full h-full object-cover"
-              alt="Ảnh đính kèm"
-            />
+            <div class="w-full h-full rounded-lg overflow-hidden border border-border">
+              <img
+                :src="img.url"
+                class="w-full h-full object-cover"
+                alt="Ảnh đính kèm"
+              />
+            </div>
             <button
               type="button"
-              class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-background border border-border text-muted-foreground flex items-center justify-center hover:text-foreground hover:border-foreground/50 transition-colors shadow-sm"
-              @click="removeImage(idx)"
+              class="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-background border border-border text-muted-foreground flex items-center justify-center hover:text-foreground hover:border-foreground/50 transition-colors shadow-sm z-10"
+              @click.stop="removeImage(idx)"
               aria-label="Xoá ảnh"
             >
-              <IconX class="w-3 h-3" />
+              <IconX class="w-4 h-4" />
             </button>
           </div>
 
@@ -388,7 +390,6 @@ async function handleSendAnother() {
           ref="fileInput"
           type="file"
           accept="image/png,image/jpeg,image/webp,image/gif"
-          multiple
           class="hidden"
           @change="handleFileSelect"
         />
@@ -431,10 +432,11 @@ async function handleSendAnother() {
         class="fixed inset-0 z-50 bg-black/80 flex flex-col"
         @click="closeImagePreview"
       >
-        <div class="flex items-center justify-end px-4 h-12 shrink-0">
+        <div class="flex items-center justify-center px-4 h-14 shrink-0">
           <Button
-            variant="outline"
+            variant="secondary"
             size="icon"
+            class="absolute right-4 top-3"
             @click="closeImagePreview"
             aria-label="Đóng"
           >
@@ -444,9 +446,9 @@ async function handleSendAnother() {
         <div class="flex-1 flex items-center justify-center px-4 pb-4 min-h-0">
           <img
             :src="previewUrl"
-            class="max-w-full max-h-full object-contain rounded-lg select-none"
+            class="max-w-full max-h-full object-contain rounded-lg select-none cursor-pointer"
             alt="Xem trước ảnh"
-            @click.stop
+            @click="closeImagePreview"
           />
         </div>
       </div>
