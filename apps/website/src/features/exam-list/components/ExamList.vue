@@ -399,7 +399,7 @@ const table = useVueTable({
   </div>
   <div v-else class="flex-1 flex flex-col gap-0 relative -mt-6 lg:-mt-8">
     <!-- Top Action Bar (Search + Config Switch) - Sticky with Glassmorphism -->
-    <div class="sticky top-[57px] group-[.header-hidden]/layout:top-0 z-50 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-[top] duration-300 ease-in-out w-full border-b border-border/60">
+    <div class="sticky top-[57px] z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full border-b border-border/60">
       <!-- Search Input Wrapper -->
       <div class="relative w-full md:max-w-md min-w-0">
         <Input
