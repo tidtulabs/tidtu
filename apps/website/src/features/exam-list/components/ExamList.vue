@@ -20,7 +20,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { h, inject, onMounted, onUnmounted, ref, type Ref } from "vue";
+import { h, inject, onMounted, onUnmounted, ref } from "vue";
 import {
   Table,
   TableBody,
@@ -51,7 +51,7 @@ import { HttpError } from "../api/HttpError";
 
 const currentUrl = window.location.href;
 
-const isHeaderVisible = inject<Ref<boolean>>("headerVisible")!;
+const isHeaderVisible = inject("headerVisible", ref(true));
 let lastScrollTop = 0;
 const handleHeaderScroll = () => {
   if (window.innerWidth >= 768) {
@@ -397,9 +397,9 @@ const table = useVueTable({
       }"
     />
   </div>
-  <div v-else class="flex-1 flex flex-col gap-0 relative -mt-6 lg:-mt-8">
+  <div v-else class="flex-1 flex flex-col gap-0 -mt-6 lg:-mt-8">
     <!-- Top Action Bar (Search + Config Switch) - Sticky with Glassmorphism -->
-    <div class="sticky top-[57px] z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full border-b border-border/60">
+    <div class="sticky top-[56px] z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full border-b border-border/60">
       <!-- Search Input Wrapper -->
       <div class="relative w-full md:max-w-md min-w-0">
         <Input
@@ -469,7 +469,6 @@ const table = useVueTable({
               class="md:hidden flex items-center gap-1.5 bg-muted px-2.5 py-0.5 rounded-full text-[10px] font-semibold border h-6 shrink-0 transition-all duration-300"
               :class="fetchingFlag.isFetching ? 'border-primary bg-primary/5 text-primary animate-pulse' : 'border-border text-muted-foreground'"
             >
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
               <span>{{ exams[exams.length - 1]?.pagination || 0 }}tr</span>
             </span>
 
@@ -478,7 +477,6 @@ const table = useVueTable({
               class="hidden md:flex items-center gap-1.5 bg-muted px-3 py-1 rounded-full text-xs font-medium border h-7 shrink-0 transition-all duration-300"
               :class="fetchingFlag.isFetching ? 'border-primary bg-primary/5 text-primary animate-pulse' : 'border-border text-muted-foreground'"
             >
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
               <span>Đã đồng bộ {{ exams[exams.length - 1]?.pagination || 0 }} trang</span>
             </span>
           </div>
