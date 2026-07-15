@@ -20,7 +20,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { h, inject, onMounted, onUnmounted, ref } from "vue";
+import { h, onMounted, onUnmounted, ref } from "vue";
 import {
   Table,
   TableBody,
@@ -50,29 +50,6 @@ import QuickBugButton from "@/components/QuickBugButton.vue";
 import { HttpError } from "../api/HttpError";
 
 const currentUrl = window.location.href;
-
-const isHeaderVisible = inject("headerVisible", ref(true));
-let lastScrollTop = 0;
-const handleHeaderScroll = () => {
-  if (window.innerWidth >= 768) {
-    isHeaderVisible.value = true;
-    return;
-  }
-  const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
-  if (currentScrollTop > lastScrollTop && currentScrollTop > 80) {
-    isHeaderVisible.value = false;
-  } else if (currentScrollTop < lastScrollTop) {
-    isHeaderVisible.value = true;
-  }
-  lastScrollTop = Math.max(0, currentScrollTop);
-};
-
-onMounted(() => {
-  window.addEventListener("scroll", handleHeaderScroll, { passive: true });
-});
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleHeaderScroll);
-});
 
 import { toast } from "vue-sonner";
 import { getExamList } from "../api/getExamList";
