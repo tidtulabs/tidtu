@@ -20,7 +20,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { h, onMounted, onUnmounted, ref } from "vue";
+import { h, inject, onMounted, onUnmounted, ref, type Ref } from "vue";
 import {
   Table,
   TableBody,
@@ -50,6 +50,30 @@ import QuickBugButton from "@/components/QuickBugButton.vue";
 import { HttpError } from "../api/HttpError";
 
 const currentUrl = window.location.href;
+
+const isHeaderVisible = inject<Ref<boolean>>("headerVisible")!;
+let lastScrollTop = 0;
+const handleHeaderScroll = () => {
+  if (window.innerWidth >= 768) {
+    isHeaderVisible.value = true;
+    return;
+  }
+  const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+  if (currentScrollTop > lastScrollTop && currentScrollTop > 80) {
+    isHeaderVisible.value = false;
+  } else if (currentScrollTop < lastScrollTop) {
+    isHeaderVisible.value = true;
+  }
+  lastScrollTop = Math.max(0, currentScrollTop);
+};
+
+onMounted(() => {
+  window.addEventListener("scroll", handleHeaderScroll, { passive: true });
+});
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleHeaderScroll);
+});
+
 import { toast } from "vue-sonner";
 import { getExamList } from "../api/getExamList";
 import { updateExamList } from "../api/updateExamList";
@@ -148,7 +172,7 @@ const fetchMore = async (isChecked: boolean) => {
       } catch (error: any) {
         console.error("Fetch failed:", error);
         toast.error("Lỗi", {
-          description: error?.message || "Đã xảy ra lỗi khi tải thêm dữ liệu",
+          description: "Đã xảy ra lỗi khi tải thêm dữ liệu",
         });
       } finally {
         fetchingFlag.value.isFetching = false;
@@ -290,7 +314,7 @@ const columns: ColumnDef<ExamItem>[] = [
         } catch (error: any) {
           row.original.isDown = false;
           toast.error("Lỗi", {
-            description: error?.message || "Đã xảy ra lỗi khi tải xuống",
+            description: "Đã xảy ra lỗi khi tải xuống",
           });
         }
       };
@@ -363,19 +387,19 @@ const table = useVueTable({
     v-else-if="isError"
     class="flex-1 flex flex-col items-center justify-center gap-4"
   >
-    <p class="text-destructive text-3xl">{{ error?.message || "Lỗi khi tải dữ liệu" }}</p>
+    <p class="text-destructive text-3xl">Có lỗi xảy ra</p>
     <p class="text-muted-foreground text-sm">Vui lòng thử lại sau!</p>
     <QuickBugButton
       v-if="(error as any)?.status !== 429"
       :context="{
-        message: (error as any)?.message || 'Lỗi khi tải dữ liệu',
+        message: 'Có lỗi xảy ra khi tải dữ liệu',
         page: currentUrl,
       }"
     />
   </div>
   <div v-else class="flex-1 flex flex-col gap-0 relative -mt-6 lg:-mt-8">
     <!-- Top Action Bar (Search + Config Switch) - Sticky with Glassmorphism -->
-    <div class="sticky top-[57px] group-[.header-hidden]/layout:top-0 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 w-full border-b border-border/60">
+    <div class="sticky top-[57px] z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full border-b border-border/60">
       <!-- Search Input Wrapper -->
       <div class="relative w-full md:max-w-md min-w-0">
         <Input
@@ -499,9 +523,9 @@ const table = useVueTable({
     </div>
 
     <!-- Table Container Card -->
-    <div class="pt-4 pb-4 md:pb-6 flex flex-col gap-6 w-full">
-      <div class="border-y border-x border-border rounded-lg bg-card  overflow-hidden">
-        <div class="overflow-x-auto">
+    <div class="pt-4 pb-4 md:pb-6 flex flex-col gap-6 w-full flex-1">
+      <div class="border-y border-x border-border rounded-lg bg-card overflow-hidden flex flex-col flex-1">
+        <div class="overflow-x-auto flex-1">
           <Table :class="[(showUploadDateOnMobile || showPageOnMobile) ? 'min-w-[600px]' : '', 'sm:min-w-0']">
             <TableHeader>
               <TableRow
@@ -576,7 +600,7 @@ const table = useVueTable({
               </template>
               <template v-else>
                 <TableRow>
-                  <TableCell :colspan="columns.length" class="h-32 text-center text-muted-foreground">
+                  <TableCell :colspan="table.getVisibleFlatColumns().length || columns.length" class="h-32 text-center text-muted-foreground">
                     Không có dữ liệu đề thi
                   </TableCell>
                 </TableRow>
