@@ -1,0 +1,32 @@
+name: Deploy worker-cache to Render
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+    paths:
+      - 'apps/worker-cache/**'
+      - '.github/workflows/worker-cache-deployment.yml'
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install pnpm
+        run: npm install -g pnpm@9.12.0
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Build Cache Service
+        run: pnpm --filter worker-cache run build
+      - name: Deploy to Render
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_CACHE_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}

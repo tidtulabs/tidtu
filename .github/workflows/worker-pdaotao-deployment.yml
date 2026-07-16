@@ -1,0 +1,52 @@
+name: Deploy to workers download
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+    paths:
+      - 'apps/worker-pdaotao/**'
+      - '.github/workflows/worker-pdaotao-deployment.yml'
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: install pnpm
+        run: npm install -g pnpm@9.12.0
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Build & Deploy Default Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: "apps/worker-pdaotao/"
+          packageManager: pnpm
+          command: deploy --minify
+      - name: Build & Deploy Clone 2
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: "apps/worker-pdaotao/"
+          packageManager: pnpm
+          command: deploy -e clone2 --minify
+      - name: Build & Deploy Clone 3
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: "apps/worker-pdaotao/"
+          packageManager: pnpm
+          command: deploy -e clone3 --minify
