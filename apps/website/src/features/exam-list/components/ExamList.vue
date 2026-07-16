@@ -433,6 +433,7 @@ const table = useVueTable({
           :model-value="searchInput"
           @update:model-value="searchInput = $event as string"
           @focus="onSearchFocus"
+          @keydown.enter="($event.target as HTMLInputElement)?.blur()"
         />
         <span
           class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
