@@ -1,8 +1,6 @@
-import { createRouter, createWebHistory } from "vue-router";
-import HomePage from "@/views/HomePage.vue";
-import { ExamListPage } from "@/features/exam-list";
-import PDaotaoPage from "@/views/PDaotaoPage.vue";
-import PDaotaoLayout from "./views/PDaotaoLayout.vue";
+import { createRouter, createWebHistory } from "vue-router"
+import HomePage from "@/views/HomePage.vue"
+import PDaoTaoLayout from "./views/PDaoTaoLayout.vue"
 
 const routes = [
 	{
@@ -12,23 +10,25 @@ const routes = [
 	},
 	{
 		path: "/pdaotao",
-		component: PDaotaoLayout,
+		component: PDaoTaoLayout,
 		children: [
 			{
 				path: "",
-				component: PDaotaoPage,
+				component: () => import("@/views/PDaoTaoPage.vue"),
 				meta: { title: "P. Đào Tạo | TIDTU" },
 			},
-			{
-				path: "examlist",
-				component: ExamListPage,
-				meta: { title: "Danh sách thi | TIDTU" },
-			},
-			{
-				path: "feedback",
-				component: () => import("@/views/FeedbackView.vue"),
-				meta: { title: "Góp ý & Báo lỗi | TIDTU" },
-			},
+				{
+					path: "examlist",
+					alias: "danh-sach-thi",
+					component: () => import("@/features/exam-list/views/ExamListPage.vue"),
+					meta: { title: "Danh sách thi | TIDTU" },
+				},
+				{
+					path: "feedback",
+					alias: "gop-y-bao-loi",
+					component: () => import("@/features/feedback/components/FeedbackView.vue"),
+					meta: { title: "Góp ý & Báo lỗi | TIDTU" },
+				},
 		],
 	},
 	{

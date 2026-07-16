@@ -1,6 +1,17 @@
 <script setup lang="ts">
-import { useHead } from "@unhead/vue";
 import EvaluationIcon from "@/assets/icons/evaluation.svg";
+import FindExamListIcon from "@/assets/icons/find-exam-list.svg";
+import { RouterLink } from "vue-router";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useHead } from "@unhead/vue";
 
 useHead({
   title: "TIDTU",
@@ -14,17 +25,6 @@ useHead({
     { rel: "canonical", href: "https://tidtu.pages.dev" },
   ],
 })
-import FindExamListIcon from "@/assets/icons/find-exam-list.svg";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { RouterLink } from "vue-router";
-import { Button } from "@/components/ui/button";
 
 const cards = [
   {
@@ -33,7 +33,7 @@ const cards = [
     content:
       "Một công cụ giúp bạn tìm kiếm, tải xuống danh sách thi phòng đào tạo đại học Duy Tân nhanh chóng và dễ dàng",
     footer: "Truy cập ngay",
-    href: "/pdaotao/examlist",
+    href: "/pdaotao/danh-sach-thi",
   },
   {
     title: EvaluationIcon,
@@ -57,7 +57,7 @@ const cards = [
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 xl:grid-cols-2 lg:pt-8 pt-6">
       <Card
-        class="flex-1  border hover:border-primary transition-transform duration-300 group"
+        class="flex-1 border hover:border-primary transition-transform duration-300 group"
         v-for="(card, index) in cards"
         :key="index"
       >

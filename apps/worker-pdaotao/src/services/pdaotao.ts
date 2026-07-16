@@ -63,8 +63,8 @@ type ExamListResult = {
 
 export const fetchExamList = async (c: Context) => {
 	try {
-		const isTotalRequested = c.req.query("total") || false;
-		if (isTotalRequested) {
+		const scope = c.req.query("scope");
+			if (scope === "all") {
 			const cachedExamList = await c.env.CACHE_TIDTU.get("examList:total");
 			const cachedData: ExamListResult = cachedExamList
 				? JSON.parse(cachedExamList)

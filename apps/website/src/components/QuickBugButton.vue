@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { IconBug } from "@tabler/icons-vue";
 import { Button } from "@/components/ui/button";
-import { useQuickBugReport, type BugReportContext } from "@/composables/useQuickBugReport";
+import type { BugReportContext } from "@/features/feedback/api/quickBugReport";
+import { useQuickBugReport } from "@/composables/useQuickBugReport";
 
 const props = defineProps<{
   context: BugReportContext;
