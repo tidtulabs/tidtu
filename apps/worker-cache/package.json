@@ -8,7 +8,7 @@
 		"build": "pnpm run clean && tsc && tsc-alias",
 		"start": "node dist/app.js",
 		"dev": "nodemon --watch src -e ts -r tsconfig-paths/register src/app.ts",
-		"dev:remote": "pnpm run build && pnpm run start"
+		"dev:remote": "nodemon --watch src -e ts -r tsconfig-paths/register src/app.ts"
 	},
 	"keywords": [],
 	"author": "ngtuonghy",
