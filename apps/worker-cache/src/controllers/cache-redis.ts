@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { KV } from "@config/cloudflare";
+import { getKV } from "@config/cloudflare";
 import { ExamItem, getExamList } from "@services/cache-redis";
 import { logger } from "@utils/winston";
 
@@ -49,6 +49,7 @@ const Task = async (
 
 export const cachedRedis = async (_: Request, res: Response) => {
 	try {
+		const KV = await getKV();
 		await KV.put("isUpdated", "true", { expirationTtl: 120 });
 		const task1 = await Task("", [], 7);
 		const task2 = await Task(task1.meta.nextPagination, [], 0, true);

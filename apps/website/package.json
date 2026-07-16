@@ -37,7 +37,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.18.4",
-		"@cloudflare/workers-types": "^4.20241230.0",
+		"@cloudflare/workers-types": "^5.20260714.1",
 		"@tsconfig/node22": "^22.0.0",
 		"@types/jsdom": "^21.1.7",
 		"@types/node": "^26.1.1",
@@ -56,7 +56,7 @@
 		"vitest": "^4.1.10",
 		"vue-svg-loader": "^0.16.0",
 		"vue-tsc": "^2.2.0",
-		"wrangler": "^3.99.0"
+		"wrangler": "^4.110.0"
 	},
 	"packageManager": "pnpm@9.12.0",
 	"node": "20.8.1"

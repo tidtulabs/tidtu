@@ -1,16 +1,5 @@
 import Cloudflare from "cloudflare";
-
-const client = new Cloudflare({
-	apiEmail: process.env["CLOUDFLARE_EMAIL"],
-	apiKey: process.env["CLOUDFLARE_API_KEY"],
-});
-
-const CF_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
-const CF_KV_NAMESPACE_ID = process.env.CLOUDFLARE_KV_NAMESPACE_ID;
-
-interface Metadata {
-	createdAt: string;
-}
+import { getKVNamespace } from "@lib/miniflare-kv";
 
 interface KVResponse {
 	success: boolean;
@@ -30,96 +19,123 @@ interface KV {
 	delete: (key: string) => Promise<KVResponse>;
 }
 
-const KV: KV = {
-	put: async (
-		key: string,
-		data: any,
-		options?: {
-			expirationTtl?: number;
-		},
-	): Promise<KVResponse> => {
-		if (CF_ACCOUNT_ID && CF_KV_NAMESPACE_ID) {
-			const metadata: Metadata = {
-				createdAt: new Date().toISOString(),
-			};
-			const params: any = {
-				account_id: CF_ACCOUNT_ID,
-				metadata: JSON.stringify(metadata),
-				value: data,
-			};
-			if (options?.expirationTtl) {
-				params.expiration_ttl = options.expirationTtl;
-			}
+let instance: KV | null = null;
 
+async function createCloudflareKV(): Promise<KV | null> {
+	const email = process.env["CLOUDFLARE_EMAIL"];
+	const apiKey = process.env["CLOUDFLARE_API_KEY"];
+	const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+	const namespaceId = process.env.CLOUDFLARE_KV_NAMESPACE_ID;
+
+	if (!email || !apiKey || !accountId || !namespaceId) return null;
+
+	const client = new Cloudflare({ apiEmail: email, apiKey });
+
+	return {
+		put: async (key, data, options) => {
 			try {
-				const value = await client.kv.namespaces.values.update(
-					CF_KV_NAMESPACE_ID,
-					key,
-					params,
-				);
-
-				return {
-					success: true,
-					message: "Data stored successfully",
-				};
+				await client.kv.namespaces.values.update(namespaceId, key, {
+					account_id: accountId,
+					metadata: JSON.stringify({ createdAt: new Date().toISOString() }),
+					value: data,
+					...(options?.expirationTtl && {
+						expiration_ttl: options.expirationTtl,
+					}),
+				});
+				return { success: true, message: "Data stored successfully" };
 			} catch (error: any) {
 				return {
 					success: false,
 					message: `Error storing data: ${error.message}`,
 				};
 			}
-		} else {
-			return { success: false, message: "Missing Cloudflare configuration" };
-		}
-	},
-
-	get: async (key: string): Promise<any | null> => {
-		if (CF_ACCOUNT_ID && CF_KV_NAMESPACE_ID) {
+		},
+		get: async (key) => {
 			try {
-				const res = await client.kv.namespaces.values.get(
-					CF_KV_NAMESPACE_ID,
-					key,
-					{
-						account_id: CF_ACCOUNT_ID,
-					},
-				);
-
-				if (res) {
-					const data = await res.json();
-					return data;
-				}
-
-				return null;
+				const res = await client.kv.namespaces.values.get(namespaceId, key, {
+					account_id: accountId,
+				});
+				if (!res) return null;
+				const data = await res.json();
+				return data;
 			} catch (error) {
 				console.error("Error retrieving data:", error);
 				return null;
 			}
-		} else {
-			console.error("Missing Cloudflare configuration");
-			return null;
-		}
-	},
-	delete: async (key: string): Promise<KVResponse> => {
-		if (CF_ACCOUNT_ID && CF_KV_NAMESPACE_ID) {
+		},
+		delete: async (key) => {
 			try {
-				await client.kv.namespaces.values.delete(CF_KV_NAMESPACE_ID, key, {
-					account_id: CF_ACCOUNT_ID,
+				await client.kv.namespaces.values.delete(namespaceId, key, {
+					account_id: accountId,
 				});
-
-				return {
-					success: true,
-					message: "Data deleted successfully",
-				};
+				return { success: true, message: "Data deleted successfully" };
 			} catch (error: any) {
 				return {
 					success: false,
 					message: `Error deleting data: ${error.message}`,
 				};
 			}
-		} else {
-			return { success: false, message: "Missing Cloudflare configuration" };
-		}
-	},
-};
+		},
+	};
+}
 
-export { KV };
+async function createMiniflareKV(): Promise<KV> {
+	const mfKv = await getKVNamespace();
+	return {
+		put: async (key, data, options) => {
+			try {
+				await mfKv.put(key, data, {
+					...(options?.expirationTtl && {
+						expirationTtl: options.expirationTtl,
+					}),
+				});
+				return { success: true, message: "Data stored successfully" };
+			} catch (error: any) {
+				return {
+					success: false,
+					message: `Error storing data: ${error.message}`,
+				};
+			}
+		},
+		get: async (key) => {
+			try {
+				const value = await mfKv.get(key);
+				return value ?? null;
+			} catch (error) {
+				console.error("Error retrieving data:", error);
+				return null;
+			}
+		},
+		delete: async (key) => {
+			try {
+				await mfKv.delete(key);
+				return { success: true, message: "Data deleted successfully" };
+			} catch (error: any) {
+				return {
+					success: false,
+					message: `Error deleting data: ${error.message}`,
+				};
+			}
+		},
+	};
+}
+
+async function getKV(): Promise<KV> {
+	if (instance) return instance;
+
+	if (process.env.NODE_ENV === "dev") {
+		instance = await createMiniflareKV();
+	} else {
+		const cfKv = await createCloudflareKV();
+		if (!cfKv) {
+			throw new Error(
+				"Missing Cloudflare configuration (CLOUDFLARE_EMAIL, CLOUDFLARE_API_KEY, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_KV_NAMESPACE_ID)",
+			);
+		}
+		instance = cfKv;
+	}
+
+	return instance;
+}
+
+export { getKV };
