@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@tabler/icons-vue": "^3.44.0",
 		"@tailwindcss/vite": "^4.3.2",
+		"@tanstack/match-sorter-utils": "^8.19.4",
 		"@tanstack/vue-query": "^5.69.0",
 		"@tanstack/vue-table": "^8.21.3",
 		"@vueuse/core": "^14.3.0",

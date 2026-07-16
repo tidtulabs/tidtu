@@ -2,7 +2,6 @@
 import {
   IconFileDownload,
   IconLoader3,
-  IconHelpOctagon,
   IconSparkles,
   IconAdjustmentsHorizontal,
   IconX,
@@ -11,6 +10,7 @@ import type {
   ColumnDef,
   ColumnFiltersState,
   VisibilityState,
+  FilterFn,
 } from "@tanstack/vue-table";
 import {
   FlexRender,
@@ -20,7 +20,12 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { h, onMounted, onUnmounted, ref } from "vue";
+import {
+  rankItem,
+  compareItems,
+  type RankingInfo,
+} from "@tanstack/match-sorter-utils";
+import { h, onMounted, onUnmounted, ref, watch } from "vue";
 import {
   Table,
   TableBody,
@@ -47,7 +52,21 @@ import {
 import { Label } from "@/components/ui/label";
 import ExamListLoading from "./ExamListLoading.vue";
 import QuickBugButton from "@/components/QuickBugButton.vue";
-import { HttpError } from "../api/HttpError";
+
+declare module "@tanstack/vue-table" {
+  interface FilterFns {
+    fuzzy: FilterFn<unknown>;
+  }
+  interface FilterMeta {
+    itemRank: RankingInfo;
+  }
+}
+
+const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  const itemRank = rankItem(row.getValue(columnId), value);
+  addMeta({ itemRank });
+  return itemRank.passed;
+};
 
 const currentUrl = window.location.href;
 
@@ -159,6 +178,16 @@ const fetchMore = async (isChecked: boolean) => {
     exams.value = examsFrequency.value;
   }
 };
+
+const globalFilter = ref("");
+const searchInput = ref("");
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+watch(searchInput, (value) => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    globalFilter.value = value;
+  },200);
+});
 
 const columnFilters = ref<ColumnFiltersState>([]);
 const columnVisibility = ref<VisibilityState>({
@@ -332,12 +361,19 @@ function valueUpdater<T>(
 const table = useVueTable({
   data: exams,
   columns,
+  filterFns: {
+    fuzzy: fuzzyFilter,
+  },
+  globalFilterFn: "fuzzy",
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
   onColumnFiltersChange: (updaterOrValue) => {
     columnFilters.value = valueUpdater(updaterOrValue, columnFilters.value);
+  },
+  onGlobalFilterChange: (updaterOrValue) => {
+    globalFilter.value = valueUpdater(updaterOrValue, globalFilter.value);
   },
   onColumnVisibilityChange: (updaterOrValue) => {
     columnVisibility.value = valueUpdater(
@@ -348,6 +384,9 @@ const table = useVueTable({
   state: {
     get columnFilters() {
       return columnFilters.value;
+    },
+    get globalFilter() {
+      return globalFilter.value;
     },
     get columnVisibility() {
       return columnVisibility.value;
@@ -384,10 +423,8 @@ const table = useVueTable({
           type="text"
           placeholder="Tìm kiếm mã thi, môn học..."
           class="pl-9 pr-8 w-full bg-background h-9 text-sm"
-          :model-value="table.getColumn('examTitle')?.getFilterValue() as string"
-          @update:model-value="
-            table.getColumn('examTitle')?.setFilterValue($event)
-          "
+          :model-value="searchInput"
+          @update:model-value="searchInput = $event as string"
         />
         <span
           class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
@@ -409,8 +446,8 @@ const table = useVueTable({
         </span>
         <!-- Clear 'X' Button -->
         <button
-          v-if="columnFilters.find(f => f.id === 'examTitle')?.value"
-          @click="table.getColumn('examTitle')?.setFilterValue('')"
+          v-if="searchInput"
+          @click="searchInput = ''; globalFilter = ''"
           class="absolute end-0 inset-y-0 flex items-center justify-center px-2.5 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Xóa nội dung tìm kiếm"
         >
