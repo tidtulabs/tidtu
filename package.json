@@ -3,7 +3,7 @@
 	"private": true,
 	"scripts": {
 		"build": "turbo build",
-		"dev": "turbo dev",
+		"dev": "pnpm dev:stop && turbo dev",
 		"dev:stop": "npx kill-port 5173 3000 3001 4001 4002 4003",
 		"lint": "turbo lint",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\""

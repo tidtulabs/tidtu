@@ -8,8 +8,10 @@ const app = new Hono<{ Bindings: CloudflareBindings }>();
 
 app.use("*", async (c, next) => {
 	const corsMiddlewareHandler = cors({
-		origin: c.env.CORS_ORIGIN,
-    credentials: true,
+		origin: c.env.NODE_ENV === "dev"
+			? (origin) => origin || c.env.CORS_ORIGIN || "https://tidtu.pages.dev"
+			: (c.env.CORS_ORIGIN || "https://tidtu.pages.dev"),
+		credentials: true,
 	});
 	return corsMiddlewareHandler(c, next);
 });

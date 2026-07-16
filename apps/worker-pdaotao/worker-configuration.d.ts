@@ -5,6 +5,7 @@ interface __BaseEnv_CloudflareBindings {
 	CACHE_TIDTU: KVNamespace;
 	CACHE_SERVICE_API: string;
 	CORS_ORIGIN: string;
+	NODE_ENV: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {

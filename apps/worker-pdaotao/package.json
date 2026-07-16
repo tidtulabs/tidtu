@@ -1,8 +1,7 @@
 {
 	"name": "worker-pdaotao",
 	"scripts": {
-		"dev": "concurrently \"wrangler dev --port 4001 --remote\" \"wrangler dev -e clone2 --port 4002 --remote\" \"wrangler dev -e clone3 --port 4003 --remote\"",
-		"dev:single": "wrangler dev --port 4001",
+		"dev": "concurrently \"wrangler dev --port 4001 --ip 0.0.0.0 --remote\" \"wrangler dev -e clone2 --port 4002 --ip 0.0.0.0 --remote\" \"wrangler dev -e clone3 --port 4003 --ip 0.0.0.0 --remote\"",
 		"dev:single:remote": "wrangler dev --port 4001 --remote",
 		"dev:clone2": "wrangler dev -e clone2 --port 4002",
 		"dev:clone3": "wrangler dev -e clone3 --port 4003",

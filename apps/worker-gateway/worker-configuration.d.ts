@@ -4,6 +4,7 @@
 interface __BaseEnv_CloudflareBindings {
     MY_RATE_LIMITER: RateLimit;
     CORS_ORIGIN: "https://tidtu.pages.dev";
+    NODE_ENV: string;
     CLONE_1: Fetcher /* worker-pdaotao */;
     CLONE_2: Fetcher /* worker-pdaotao-2 */;
     CLONE_3: Fetcher /* worker-pdaotao-3 */;

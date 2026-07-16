@@ -70,6 +70,10 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 
 const currentUrl = window.location.href;
 
+function onSearchFocus() {
+  window.scrollTo(0, 0)
+}
+
 import { toast } from "vue-sonner";
 import { getExamList } from "../api/getExamList";
 import { updateExamList } from "../api/updateExamList";
@@ -421,6 +425,8 @@ const table = useVueTable({
         <Input
           id="search"
           type="text"
+          inputmode="search"
+          enterkeyhint="search"
           placeholder="Tìm kiếm mã thi, môn học..."
           class="pl-9 pr-8 w-full bg-background h-9 text-sm"
           :model-value="searchInput"
