@@ -427,10 +427,12 @@ const table = useVueTable({
           type="text"
           inputmode="search"
           enterkeyhint="search"
+          aria-label="Tìm kiếm"
           placeholder="Tìm kiếm mã thi, môn học..."
           class="pl-9 pr-8 w-full bg-background h-9 text-sm"
           :model-value="searchInput"
           @update:model-value="searchInput = $event as string"
+          @focus="onSearchFocus"
         />
         <span
           class="absolute start-0 inset-y-0 flex items-center justify-center px-3"

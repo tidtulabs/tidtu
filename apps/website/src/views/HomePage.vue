@@ -1,5 +1,19 @@
 <script setup lang="ts">
+import { useHead } from "@unhead/vue";
 import EvaluationIcon from "@/assets/icons/evaluation.svg";
+
+useHead({
+  title: "TIDTU",
+  meta: [
+    { name: "description", content: "Tiện ích DTU - Tra cứu đề thi và đánh giá giảng viên đại học Duy Tân" },
+    { property: "og:title", content: "TIDTU - Tiện ích DTU" },
+    { property: "og:description", content: "Tra cứu đề thi và đánh giá giảng viên đại học Duy Tân" },
+    { property: "og:url", content: "https://tidtu.pages.dev" },
+  ],
+  link: [
+    { rel: "canonical", href: "https://tidtu.pages.dev" },
+  ],
+})
 import FindExamListIcon from "@/assets/icons/find-exam-list.svg";
 import {
   Card,

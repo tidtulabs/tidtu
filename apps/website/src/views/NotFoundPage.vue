@@ -1,6 +1,15 @@
 <script setup lang="ts">
+import { useHead } from "@unhead/vue";
 import { Button } from "@/components/ui/button";
 import { RouterLink } from "vue-router";
+
+useHead({
+  title: "404 | TIDTU",
+  meta: [
+    { name: "description", content: "Không tìm thấy trang này" },
+    { name: "robots", content: "noindex" },
+  ],
+})
 </script>
 
 <template>
