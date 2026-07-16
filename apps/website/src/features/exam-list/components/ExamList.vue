@@ -2,7 +2,6 @@
 import {
   IconFileDownload,
   IconLoader3,
-  IconHelpOctagon,
   IconSparkles,
   IconAdjustmentsHorizontal,
   IconX,
@@ -46,10 +45,13 @@ import {
 } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import ExamListLoading from "./ExamListLoading.vue";
-import QuickBugButton from "@/components/QuickBugButton.vue";
-import { HttpError } from "../api/HttpError";
+import QuickBugButton from "@/components/QuickBugButton.vue";;
 
 const currentUrl = window.location.href;
+
+function onSearchFocus() {
+  window.scrollTo(0, 0)
+}
 
 import { toast } from "vue-sonner";
 import { getExamList } from "../api/getExamList";
@@ -382,12 +384,16 @@ const table = useVueTable({
         <Input
           id="search"
           type="text"
+          inputmode="search"
+          enterkeyhint="search"
           placeholder="Tìm kiếm mã thi, môn học..."
           class="pl-9 pr-8 w-full bg-background h-9 text-sm"
           :model-value="table.getColumn('examTitle')?.getFilterValue() as string"
           @update:model-value="
             table.getColumn('examTitle')?.setFilterValue($event)
           "
+          @focus="onSearchFocus"
+          @keydown.enter="($event.target as HTMLInputElement)?.blur()"
         />
         <span
           class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
