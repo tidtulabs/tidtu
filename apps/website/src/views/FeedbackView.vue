@@ -1,7 +1,21 @@
 <script setup lang="ts">
+import { useHead } from "@unhead/vue";
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import { useTurnstile } from "@/composables/useTurnstile";
+
+useHead({
+  title: "Góp ý & Báo lỗi | TIDTU",
+  meta: [
+    { name: "description", content: "Góp ý và báo lỗi cho TIDTU" },
+    { property: "og:title", content: "Góp ý & Báo lỗi | TIDTU" },
+    { property: "og:description", content: "Góp ý và báo lỗi cho TIDTU" },
+    { property: "og:url", content: "https://tidtu.pages.dev/pdaotao/feedback" },
+  ],
+  link: [
+    { rel: "canonical", href: "https://tidtu.pages.dev/pdaotao/feedback" },
+  ],
+})
 import { IconX, IconPhotoPlus } from "@tabler/icons-vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

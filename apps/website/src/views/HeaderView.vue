@@ -37,37 +37,38 @@ const open = ref(false);
       >
         by ngtuonghy
       </h3>
-      <a href="https://github.com/tidtulabs" target="_blank">
-        <button
-          class="rounded-md gap-x-1.5 p-1.5 text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors duration-200"
-        >
-          <IconBrandGithub class="w-6 h-6" />
-        </button>
+      <a
+        href="https://github.com/tidtulabs"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+        class="rounded-md inline-flex items-center p-1.5 text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors duration-200"
+      >
+        <IconBrandGithub class="w-6 h-6" />
       </a>
       <button
         class="rounded-md gap-x-1 p-1 text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors duration-200"
+        aria-label="Chuyển đổi giao diện"
+        @click="toggleColorMode"
       >
         <IconSunMoon
           v-if="colorMode === 'auto'"
           class="w-6 h-6"
-          @click="toggleColorMode"
         />
 
         <IconSunHigh
           v-if="colorMode === 'light'"
           class="w-6 h-6 animate-spin-slow"
-          @click="toggleColorMode"
         />
         <IconMoonStars
           v-if="colorMode === 'dark'"
           class="w-6 h-6"
-          @click="toggleColorMode"
         />
       </button>
 
       <div class="md:hidden flex items-center">
         <Sheet v-model:open="open">
-          <SheetTrigger>
+          <SheetTrigger aria-label="Mở menu">
             <IconMenu2 class="w-6 h-6 hover:text-primary"
           /></SheetTrigger>
           <SheetContent class="px-0 gap-0">
