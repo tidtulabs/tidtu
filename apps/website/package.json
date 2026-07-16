@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite --host",
+		"dev:remote": "vite --host",
 		"build": "run-p type-check \"build-only {@}\" --",
 		"preview": "pnpm run build && wrangler pages dev ./dist",
 		"test:unit": "vitest",

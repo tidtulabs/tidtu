@@ -38,8 +38,12 @@ const emit = defineEmits<{
                 header.column.id === 'examDetailsUrl'
                   ? 'text-center w-24 shrink-0 whitespace-nowrap'
                   : header.column.id === 'examTitle'
-                    ? 'text-left w-full whitespace-normal'
-                    : 'text-left whitespace-nowrap',
+                    ? 'text-left min-w-[220px] max-w-[400px] whitespace-normal md:min-w-0 md:max-w-none md:w-full'
+                    : header.column.id === 'page'
+                      ? 'text-left w-20 md:w-auto whitespace-nowrap'
+                      : header.column.id === 'uploadDate'
+                        ? 'text-left w-24 md:w-auto whitespace-nowrap'
+                        : 'text-left whitespace-nowrap',
               ]"
             >
               <FlexRender :render="header.column.columnDef.header" :props="header.getContext()" />
@@ -59,7 +63,9 @@ const emit = defineEmits<{
                 :key="cell.id"
                 :class="[
                   'py-2 px-2 sm:px-4 min-w-0 font-medium text-foreground',
-                  cell.column.id === 'examTitle' ? 'max-w-0 w-full whitespace-normal break-words' : '',
+                  cell.column.id === 'examTitle' ? 'min-w-[220px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full' : '',
+                  cell.column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
+                  cell.column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
                   cell.column.id === 'examDetailsUrl' ? 'w-24 shrink-0 text-center' : '',
                 ]"
               >
@@ -104,7 +110,9 @@ const emit = defineEmits<{
                   :key="column.id"
                   :class="[
                     'py-2.5 px-2 sm:px-4 min-w-0',
-                    column.id === 'examTitle' ? 'max-w-0 w-full whitespace-normal break-words' : '',
+                    column.id === 'examTitle' ? 'min-w-[220px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full' : '',
+                    column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
+                    column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
                     column.id === 'examDetailsUrl' ? 'w-24 shrink-0 text-center' : '',
                   ]"
                 >
