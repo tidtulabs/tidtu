@@ -11,15 +11,11 @@ const app = new Hono<{
 }>();
 
 app.use("*", async (c, next) => {
-	const allowedOrigin = c.env.CORS_ORIGIN || "https://tidtu.pages.dev";
+		const allowedOrigin = c.env.CORS_ORIGIN || "https://tidtu.pages.dev";
 	const corsMiddlewareHandler = cors({
-		origin: (origin) => {
-			const isLocal = origin === "http://localhost:5173" || origin?.startsWith("http://localhost:");
-			if (isLocal || origin === allowedOrigin) {
-				return origin;
-			}
-			return allowedOrigin;
-		},
+		origin: c.env.NODE_ENV === "dev"
+			? (origin) => origin || allowedOrigin
+			: allowedOrigin,
 		credentials: true,
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
