@@ -3,7 +3,7 @@ import pdaotaoCached from "./cache-redis";
 
 const router: Router = Router();
 
-router.use("/pdaotao/scraping", pdaotaoCached);
+router.use("/pdaotao", pdaotaoCached);
 
 export default router;
 

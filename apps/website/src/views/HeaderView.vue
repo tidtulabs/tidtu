@@ -1,27 +1,20 @@
 <script setup lang="ts">
-import Logo from "@/assets/icons/logo.svg";
-import {
-  IconSunHigh,
-  IconBrandGithub,
-  IconMoonStars,
-  IconSunMoon,
-  IconMenu2,
-} from "@tabler/icons-vue";
-import { useColorMode } from "@vueuse/core";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { RouterLink } from "vue-router";
-import NavBarMobileView from "./NavBarMobileView.vue";
 import { ref } from "vue";
-const colorMode = useColorMode({
-  emitAuto: true,
-});
+import { useColorMode } from "@vueuse/core";
+import { RouterLink } from "vue-router";
+import { IconSunHigh, IconBrandGithub, IconMoonStars, IconSunMoon, IconMenu2 } from "@tabler/icons-vue";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Logo from "@/assets/icons/logo.svg";
+import NavBarMobileView from "./NavBarMobileView.vue";
+
+const colorMode = useColorMode({ emitAuto: true });
 
 const toggleColorMode = () => {
-  colorMode.store.value = colorMode.store.value === "dark" ? "light" : colorMode.store.value === "light" ? "auto" : "dark";
+  const mode = colorMode.store.value;
+  colorMode.store.value = mode === "dark" ? "light" : mode === "light" ? "auto" : "dark";
 };
 
 const open = ref(false);
-
 </script>
 <template>
   <div class="flex w-full justify-between items-center">
@@ -51,26 +44,16 @@ const open = ref(false);
         aria-label="Chuyển đổi giao diện"
         @click="toggleColorMode"
       >
-        <IconSunMoon
-          v-if="colorMode === 'auto'"
-          class="w-6 h-6"
-        />
-
-        <IconSunHigh
-          v-if="colorMode === 'light'"
-          class="w-6 h-6 animate-spin-slow"
-        />
-        <IconMoonStars
-          v-if="colorMode === 'dark'"
-          class="w-6 h-6"
-        />
+        <IconSunMoon v-if="colorMode === 'auto'" class="w-6 h-6" />
+        <IconSunHigh v-else-if="colorMode === 'light'" class="w-6 h-6 animate-spin-slow" />
+        <IconMoonStars v-else class="w-6 h-6" />
       </button>
 
       <div class="md:hidden flex items-center">
         <Sheet v-model:open="open">
           <SheetTrigger aria-label="Mở menu">
-            <IconMenu2 class="w-6 h-6 hover:text-primary"
-          /></SheetTrigger>
+            <IconMenu2 class="w-6 h-6 hover:text-primary" />
+          </SheetTrigger>
           <SheetContent class="px-0 gap-0">
             <div class="flex items-center gap-2 px-4 h-14 border-b border-border">
               <Logo class="w-7 h-7" />

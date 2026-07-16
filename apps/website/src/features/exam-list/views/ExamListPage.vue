@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useHead } from "@unhead/vue";
-import  ExamList  from "../components/ExamList.vue";
+import ExamList from "../components/ExamList.vue";
 
 useHead({
   title: "Danh sách thi | TIDTU",

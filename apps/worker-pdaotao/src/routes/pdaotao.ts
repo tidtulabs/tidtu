@@ -2,7 +2,7 @@ import * as pdaotao from "controllers/pdaotao";
 import { Hono } from "hono";
 const router = new Hono();
 
-router.get("/scraping/examlist", pdaotao.getExamList);
-router.get("/scraping/examlist/:examId", pdaotao.fetchExamDownloadLink);
+router.get("/exams", pdaotao.getExamList);
+router.get("/exams/:examId/download", pdaotao.fetchExamDownloadLink);
 
 export default router;

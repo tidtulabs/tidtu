@@ -2,6 +2,6 @@ import { Router } from "express";
 import * as pdaotao from "@controllers/cache-redis";
 const router: Router = Router();
 
-router.put("/examlist", pdaotao.cachedRedis);
+router.post("/cache/exams", pdaotao.cachedRedis);
 
 export default router;
