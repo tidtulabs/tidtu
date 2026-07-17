@@ -1,0 +1,89 @@
+import { Request, Response } from "express";
+import { getKV } from "@config/cloudflare";
+import { ExamItem, getExamList } from "@services/cache-redis";
+import { logger } from "@utils/winston";
+
+const Task = async (
+  endpoint: string | null,
+  data: ExamItem[] = [],
+  remainingPages: number = 0,
+  includeAll: boolean = false,
+) => {
+  let nextPagination = "";
+  let currentPagination = "";
+  let isNew = false;
+
+  const fe = endpoint ? `EXAM_LIST${endpoint}` : "EXAM_LIST";
+
+  const scraping = await getExamList(fe);
+
+  const end = scraping.data[scraping.data.length - 1];
+  Array.prototype.push.apply(data, scraping.data);
+
+  if (scraping.nextPagination) {
+    if (end.isNew || includeAll)
+      return Task(scraping.nextPagination, data, remainingPages, includeAll);
+    else {
+      if (remainingPages > 0) {
+        remainingPages--;
+        return Task(scraping.nextPagination, data, remainingPages);
+      }
+    }
+  }
+
+  if (scraping) {
+    isNew = end.isNew || false;
+    nextPagination = scraping.nextPagination || "";
+    currentPagination = endpoint || "";
+  }
+
+  return {
+    data: data,
+    meta: {
+      nextPagination: nextPagination,
+      currentPagination: currentPagination,
+      dateCreated: new Date().toISOString(),
+    },
+  };
+};
+
+export const cachedRedis = async (_: Request, res: Response) => {
+  try {
+    const KV = await getKV();
+    const now = Date.now();
+
+    const existingRaw = await KV.get("cacheStatus");
+    const existing = existingRaw ? JSON.parse(existingRaw) : null;
+    if (existing && existing.status === "updating" && now - existing.startedAt < 300000) {
+      logger.info("cache update already in progress, skipping");
+      res.status(200).json({ success: true, message: "already in progress" });
+      return;
+    }
+
+    await KV.put("cacheStatus", JSON.stringify({ status: "updating", startedAt: now }));
+    const task1 = await Task("", [], 7);
+    const task2 = await Task(task1.meta.nextPagination, [], 0, true);
+    await KV.put("examList:frequency", JSON.stringify(task1));
+    await KV.put("examList:total", JSON.stringify(task2));
+    await KV.put("cacheStatus", JSON.stringify({ status: "ready", lastSuccessAt: Date.now() }));
+
+    logger.info("create cache KV successfull");
+
+    res.status(201).json({
+      success: true,
+      message: "create cache redis successfull",
+      data: null,
+    });
+  } catch (error: any) {
+    try {
+      const KV = await getKV();
+      await KV.put("cacheStatus", JSON.stringify({ status: "failed", failedAt: Date.now() }));
+    } catch {}
+    logger.error(error.message);
+    res.status(500).json({
+      success: false,
+      message: "something went wrong",
+      data: null,
+    });
+  }
+};

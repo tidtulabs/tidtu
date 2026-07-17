@@ -1,0 +1,27 @@
+{
+	"name": "worker-pdaotao",
+	"scripts": {
+		"dev": "concurrently \"wrangler dev --port 4001 --ip 0.0.0.0\" \"wrangler dev -e clone2 --port 4002 --ip 0.0.0.0\" \"wrangler dev -e clone3 --port 4003 --ip 0.0.0.0\"",
+		"dev:remote": "concurrently \"wrangler dev --port 4001 --ip 0.0.0.0 --remote\" \"wrangler dev -e clone2 --port 4002 --ip 0.0.0.0 --remote\" \"wrangler dev -e clone3 --port 4003 --ip 0.0.0.0 --remote\"",
+		"dev:single:remote": "wrangler dev --port 4001 --remote",
+		"dev:clone2": "wrangler dev -e clone2 --port 4002",
+		"dev:clone3": "wrangler dev -e clone3 --port 4003",
+		"test": "vitest",
+		"deploy": "concurrently \"wrangler deploy --minify\" \"wrangler deploy -e clone2 --minify\" \"wrangler deploy -e clone3 --minify\"",
+		"deploy:clone2": "wrangler deploy -e clone2 --minify",
+		"deploy:clone3": "wrangler deploy -e clone3 --minify",
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"kv:trim-exam": "node scripts/trim-exam.cjs"
+	},
+	"dependencies": {
+		"cheerio": "^1.0.0",
+		"hono": "^4.6.15"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.18.4",
+		"@cloudflare/workers-types": "^5.20260714.1",
+		"concurrently": "^9.1.1",
+		"vitest": "^4.1.10",
+		"wrangler": "^4.110.0"
+	}
+}
