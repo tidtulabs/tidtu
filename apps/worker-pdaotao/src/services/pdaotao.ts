@@ -85,9 +85,9 @@ export const fetchExamList = async (c: Context) => {
     const cacheStatus = cacheStatusRaw ? JSON.parse(cacheStatusRaw) : null;
     const isUpdating =
       cacheStatus?.status === "updating" && Date.now() - cacheStatus.startedAt < 300000;
-    console.log("cacheStatus", cacheStatus);
+    // console.log("cacheStatus", cacheStatus);
     if (!isUpdating) {
-      console.log("New data found, updating cache...");
+      // console.log("New data found, updating cache...");
       const url = `${c.env.CACHE_SERVICE_API}/api/v1/pdaotao/cache/exams`;
       c.executionCtx.waitUntil(fetch(url, { method: "POST" }).catch(() => {}));
     }
