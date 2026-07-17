@@ -1,115 +1,128 @@
-import { ref, watch } from 'vue'
-import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import { toast } from 'vue-sonner'
-import { useExamListQuery, getExamList } from '../api/getExamList'
-import { getExamDownloadLink } from '../api/getExamDownloadLink'
-import { useExamListCacheMutation } from '../api/updateExamListCache'
-import type { ExamItem } from '../types/exam'
+import { ref, watch } from "vue";
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { HttpError } from "../api/httpError";
+import { useExamListQuery, getExamList } from "../api/getExamList";
+import { getExamDownloadLink } from "../api/getExamDownloadLink";
+import { useUpdateStatusPoller } from "../composables/useUpdateStatusPoller";
+import { useErrorToast } from "@/composables/useErrorToast";
+import type { ExamItem } from "../types/exam";
 
 export function useExamListData() {
-  const exams = ref<ExamItem[]>([])
-  const examsFrequency = ref<ExamItem[]>([])
-  const examsTotal = ref<ExamItem[]>([])
-  const fetchingFlag = ref({ isAuto: false, isFetching: false })
-  const downloadingRows = ref<Set<number>>(new Set())
+  const errorToast = useErrorToast();
+  const exams = ref<ExamItem[]>([]);
+  const examsFrequency = ref<ExamItem[]>([]);
+  const examsTotal = ref<ExamItem[]>([]);
+  const fetchingFlag = ref({ isAuto: false, isFetching: false });
+  const downloadingRows = ref<Set<number>>(new Set());
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const poller = useUpdateStatusPoller();
 
   const query = useExamListQuery({
     queryConfig: {
       refetchOnWindowFocus: false,
       retry: (failureCount: number, err: unknown) => {
-        if (err instanceof Error && 'status' in err && (err as any).status === 429) {
-          return false
+        if (err instanceof Error && "status" in err && (err as any).status === 429) {
+          return false;
         }
-        return failureCount < 3
+        return failureCount < 3;
       },
     },
-  })
+  });
 
-  const cacheMutation = useExamListCacheMutation()
-
-  watch(() => query.data.value, (data) => {
-    if (data?.success && data.response.data) {
-      exams.value = data.response.data
-      examsFrequency.value = data.response.data
-      if (data.meta.shouldUpdate) {
-        cacheMutation.mutate()
+  watch(
+    () => query.data.value,
+    (data) => {
+      if (data?.success && data.data) {
+        exams.value = data.data;
+        examsFrequency.value = data.data;
+        if (!data.meta.isUpdated) {
+          poller.start();
+        }
       }
-    }
-  }, { immediate: true })
+    },
+    { immediate: true },
+  );
 
-  const { isPending, isFetching, isError, error } = query
+  const { isPending, isFetching, isError, error } = query;
 
   const fetchMoreMutation = useMutation({
-    mutationFn: () => getExamList('all'),
+    mutationFn: () => getExamList("all"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['get-exam-list', 'all'] })
+      queryClient.invalidateQueries({ queryKey: ["get-exam-list", "all"] });
     },
-  })
+  });
 
   const downloadMutation = useMutation({
-    mutationFn: async ({ examRow, examDetailsUrl }: { examRow: number; examDetailsUrl: string }) => {
-      const match = /ID=(\d+)/.exec(examDetailsUrl)
-      const id = match ? match[1] : '000000'
-      const res = await getExamDownloadLink(id)
-      return { examRow, res }
+    mutationFn: async ({
+      examRow,
+      examDetailsUrl,
+    }: {
+      examRow: number;
+      examDetailsUrl: string;
+    }) => {
+      const match = /ID=(\d+)/.exec(examDetailsUrl);
+      if (!match) throw new Error("Không tìm thấy mã đề thi");
+      const res = await getExamDownloadLink(match[1]);
+      return { examRow, res };
     },
     onMutate: ({ examRow }) => {
-      downloadingRows.value = new Set([...downloadingRows.value, examRow])
+      downloadingRows.value = new Set([...downloadingRows.value, examRow]);
     },
     onSuccess: ({ res }) => {
-      const url = res?.response?.data?.url
+      const url = res?.data?.url;
       if (url && res?.success) {
-        const a = document.createElement('a')
-        a.href = url
-        a.download = ''
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-      } else if (res.typeError === 'NOT_FOUND') {
-        toast.error('Lỗi', { description: 'Không tìm thấy tệp tin tải xuống' })
-      } else if (res.typeError === 'SERVER_ERROR') {
-        toast.error('Lỗi', { description: 'Lỗi server, vui lòng thử lại sau' })
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
     },
-    onError: () => {
-      toast.error('Lỗi', { description: 'Đã xảy ra lỗi khi tải xuống' })
+    onError: (error) => {
+      const desc =
+        error instanceof HttpError
+          ? error.typeError === "NOT_FOUND"
+            ? "Không tìm thấy tệp tin tải xuống"
+            : error.typeError === "TIMEOUT"
+              ? "Kết nối bị timeout, vui lòng thử lại"
+              : "Đã xảy ra lỗi khi tải xuống"
+          : error?.message || "Đã xảy ra lỗi khi tải xuống";
+      errorToast.show("Lỗi", desc);
     },
     onSettled: (_data, _error, { examRow }) => {
-      const next = new Set(downloadingRows.value)
-      next.delete(examRow)
-      downloadingRows.value = next
+      const next = new Set(downloadingRows.value);
+      next.delete(examRow);
+      downloadingRows.value = next;
     },
-  })
+  });
 
   async function fetchMore(isChecked: boolean) {
     if (isChecked) {
       if (examsTotal.value.length > 0) {
-        exams.value = [...exams.value, ...examsTotal.value]
+        exams.value = examsTotal.value;
       } else {
-        fetchingFlag.value.isFetching = true
+        fetchingFlag.value.isFetching = true;
         try {
-          const res = await fetchMoreMutation.mutateAsync()
-          if (res?.response?.data) {
-            examsTotal.value = res.response.data
-            exams.value = [...exams.value, ...res.response.data]
+          const res = await fetchMoreMutation.mutateAsync();
+          if (res?.data) {
+            examsTotal.value = res.data;
+            exams.value = res.data;
           }
         } catch {
-          toast.error('Lỗi', {
-            description: 'Đã xảy ra lỗi khi tải thêm dữ liệu',
-          })
+          errorToast.show("Lỗi", "Đã xảy ra lỗi khi tải thêm dữ liệu");
         } finally {
-          fetchingFlag.value.isFetching = false
+          fetchingFlag.value.isFetching = false;
         }
       }
     } else {
-      exams.value = examsFrequency.value
+      exams.value = examsFrequency.value;
     }
   }
 
   function downloadFile(examRow: number, examDetailsUrl: string) {
-    downloadMutation.mutate({ examRow, examDetailsUrl })
+    downloadMutation.mutate({ examRow, examDetailsUrl });
   }
 
   return {
@@ -122,5 +135,5 @@ export function useExamListData() {
     downloadingRows,
     fetchMore,
     downloadFile,
-  }
+  };
 }

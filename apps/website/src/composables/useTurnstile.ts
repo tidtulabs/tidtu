@@ -11,7 +11,7 @@ declare global {
           callback: (token: string) => void;
           "error-callback"?: (error: any) => void;
           theme?: "light" | "dark" | "auto";
-        }
+        },
       ) => string;
       remove: (widgetId: string) => void;
       reset: (widgetId: string) => void;
@@ -20,7 +20,8 @@ declare global {
 }
 
 export function useTurnstile(
-  sitekey: string = (import.meta.env.VITE_TURNSTILE_SITEKEY as string) || "1x00000000000000000000AA"
+  sitekey: string = (import.meta.env.VITE_TURNSTILE_SITEKEY as string) ||
+    "1x00000000000000000000AA",
 ) {
   const colorMode = useColorMode();
   const turnstileContainer = ref<HTMLElement | null>(null);

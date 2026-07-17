@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { useHead } from "@unhead/vue"
-import { ref, onMounted, onUnmounted, nextTick, useTemplateRef } from "vue"
-import { onBeforeRouteLeave } from "vue-router"
-import { toast } from "vue-sonner"
-import { useTurnstile } from "@/composables/useTurnstile"
-import { useFeedbackForm, CONTENT_MAX } from "../composables/useFeedbackForm"
-import { useFeedbackImages } from "../composables/useFeedbackImages"
-import { IconX, IconPhotoPlus } from "@tabler/icons-vue"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import ImagePreviewDialog from "./ImagePreviewDialog.vue"
-import LeaveConfirmDialog from "./LeaveConfirmDialog.vue"
+import { useHead } from "@unhead/vue";
+import { ref, onMounted, onUnmounted, nextTick, useTemplateRef } from "vue";
+import { onBeforeRouteLeave } from "vue-router";
+import { toast } from "vue-sonner";
+import { useTurnstile } from "@/composables/useTurnstile";
+import { useFeedbackForm, CONTENT_MAX } from "../composables/useFeedbackForm";
+import { useFeedbackImages } from "../composables/useFeedbackImages";
+import { IconX, IconPhotoPlus } from "@tabler/icons-vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import ImagePreviewDialog from "./ImagePreviewDialog.vue";
+import LeaveConfirmDialog from "./LeaveConfirmDialog.vue";
 
 useHead({
   title: "Góp ý & Báo lỗi | TIDTU",
@@ -22,88 +22,105 @@ useHead({
     { property: "og:description", content: "Góp ý và báo lỗi cho TIDTU" },
     { property: "og:url", content: "https://tidtu.pages.dev/pdaotao/feedback" },
   ],
-  link: [
-    { rel: "canonical", href: "https://tidtu.pages.dev/pdaotao/feedback" },
-  ],
-})
+  link: [{ rel: "canonical", href: "https://tidtu.pages.dev/pdaotao/feedback" }],
+});
 
 const {
-  feedbackType, title, content, isSubmitting, submitted,
-  contentError, titleError, contentLength, contentOverLimit,
-  hasFormData, handleSubmit, resetForm,
-} = useFeedbackForm()
+  feedbackType,
+  title,
+  content,
+  isSubmitting,
+  submitted,
+  contentError,
+  titleError,
+  contentLength,
+  contentOverLimit,
+  hasFormData,
+  handleSubmit,
+  resetForm,
+} = useFeedbackForm();
 
 const {
-  images, previewUrl, imageError,
-  addFiles, removeImage, openPreview, closePreview, revokeAll,
-} = useFeedbackImages()
+  images,
+  previewUrl,
+  imageError,
+  addFiles,
+  removeImage,
+  openPreview,
+  closePreview,
+  revokeAll,
+} = useFeedbackImages();
 
-const { turnstileContainer, turnstileToken, render, reset, remove } = useTurnstile()
+const { turnstileContainer, turnstileToken, render, reset, remove } = useTurnstile();
 
-const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
-const showLeaveAlert = ref(false)
-let resolveLeave: ((leave: boolean) => void) | null = null
+const fileInput = useTemplateRef<HTMLInputElement>("fileInput");
+const showLeaveAlert = ref(false);
+let resolveLeave: ((leave: boolean) => void) | null = null;
 
 onBeforeRouteLeave((_to, _from, next) => {
   if (hasFormData.value && !submitted.value) {
-    showLeaveAlert.value = true
+    showLeaveAlert.value = true;
     resolveLeave = (leave: boolean) => {
-      if (leave) next()
-      else next(false)
-      showLeaveAlert.value = false
-    }
+      if (leave) next();
+      else next(false);
+      showLeaveAlert.value = false;
+    };
   } else {
-    next()
+    next();
   }
-})
+});
 
-function confirmLeave() { resolveLeave?.(true) }
-function cancelLeave() { resolveLeave?.(false) }
+function confirmLeave() {
+  resolveLeave?.(true);
+}
+function cancelLeave() {
+  resolveLeave?.(false);
+}
 
 onMounted(() => {
-  requestAnimationFrame(() => render())
-})
+  requestAnimationFrame(() => render());
+});
 
 onUnmounted(() => {
-  remove()
-  revokeAll()
-})
+  remove();
+  revokeAll();
+});
 
 function openFilePicker() {
-  fileInput.value?.click()
+  fileInput.value?.click();
 }
 
 function onFileSelect(e: Event) {
-  const target = e.target as HTMLInputElement
+  const target = e.target as HTMLInputElement;
   if (target.files?.length) {
-    addFiles(target.files)
+    addFiles(target.files);
   }
-  target.value = ''
+  target.value = "";
 }
 
 async function onSubmit() {
   if (!turnstileToken.value) {
     toast.error("Lỗi bảo mật", {
       description: "Vui lòng hoàn thành xác thực bảo mật.",
-    })
-    return
+    });
+    return;
   }
-  const imageFiles = images.value.map(i => i.file)
+  const imageFiles = images.value.map((i) => i.file);
   try {
-    await handleSubmit(turnstileToken.value, imageFiles)
+    await handleSubmit(turnstileToken.value, imageFiles);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra, vui lòng thử lại."
-    toast.error("Gửi thất bại", { description: message })
-    reset()
+    const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra, vui lòng thử lại.";
+    toast.error("Gửi thất bại", { description: message });
+    reset();
   }
 }
 
 async function handleSendAnother() {
-  resetForm()
-  revokeAll()
-  images.value = []
-  await nextTick()
-  render()
+  resetForm();
+  revokeAll();
+  images.value = [];
+  await nextTick();
+  render();
 }
 </script>
 
@@ -125,8 +142,16 @@ async function handleSendAnother() {
     </div>
 
     <div v-if="submitted" class="max-w-lg flex flex-col items-start gap-4 py-8">
-      <div class="flex items-center justify-center w-11 h-11 rounded-full bg-emerald-500/10 shrink-0">
-        <svg class="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <div
+        class="flex items-center justify-center w-11 h-11 rounded-full bg-emerald-500/10 shrink-0"
+      >
+        <svg
+          class="w-5 h-5 text-emerald-500"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
       </div>
@@ -140,13 +165,12 @@ async function handleSendAnother() {
             Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét và khắc phục sớm nhất có thể.
           </template>
           <template v-else>
-            Cảm ơn bạn đã dành thời gian đóng góp. Chúng tôi sẽ xem xét và cải thiện hệ thống sớm nhất có thể.
+            Cảm ơn bạn đã dành thời gian đóng góp. Chúng tôi sẽ xem xét và cải thiện hệ thống sớm
+            nhất có thể.
           </template>
         </p>
       </div>
-      <Button variant="outline" @click="handleSendAnother" class="mt-2">
-        Gửi thêm
-      </Button>
+      <Button variant="outline" @click="handleSendAnother" class="mt-2"> Gửi thêm </Button>
     </div>
 
     <form v-else @submit.prevent="onSubmit" class="max-w-lg space-y-5">
@@ -156,9 +180,11 @@ async function handleSendAnother() {
           <button
             type="button"
             class="flex items-center justify-center gap-1.5 h-9 rounded-md border text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            :class="feedbackType === 'bug'
-              ? 'border-foreground/20 bg-muted text-foreground font-semibold ring-1 ring-foreground/10'
-              : 'border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40'"
+            :class="
+              feedbackType === 'bug'
+                ? 'border-foreground/20 bg-muted text-foreground font-semibold ring-1 ring-foreground/10'
+                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            "
             @click="feedbackType = 'bug'"
           >
             <span>🐞</span>
@@ -167,9 +193,11 @@ async function handleSendAnother() {
           <button
             type="button"
             class="flex items-center justify-center gap-1.5 h-9 rounded-md border text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            :class="feedbackType === 'feedback'
-              ? 'border-foreground/20 bg-muted text-foreground font-semibold ring-1 ring-foreground/10'
-              : 'border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40'"
+            :class="
+              feedbackType === 'feedback'
+                ? 'border-foreground/20 bg-muted text-foreground font-semibold ring-1 ring-foreground/10'
+                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            "
             @click="feedbackType = 'feedback'"
           >
             <span>💡</span>
@@ -186,7 +214,9 @@ async function handleSendAnother() {
         <Input
           id="feedback-title"
           type="text"
-          :placeholder="feedbackType === 'bug' ? 'Tóm tắt lỗi bạn gặp phải...' : 'Tóm tắt ý kiến của bạn...'"
+          :placeholder="
+            feedbackType === 'bug' ? 'Tóm tắt lỗi bạn gặp phải...' : 'Tóm tắt ý kiến của bạn...'
+          "
           v-model="title"
           class="h-9 text-sm"
           :class="titleError ? 'border-destructive focus-visible:ring-destructive/30' : ''"
@@ -209,7 +239,11 @@ async function handleSendAnother() {
         </div>
         <Textarea
           id="feedback-content"
-          :placeholder="feedbackType === 'bug' ? 'Mô tả lỗi bạn gặp phải, bao gồm các bước tái hiện nếu có...' : 'Nhập ý kiến đóng góp của bạn...'"
+          :placeholder="
+            feedbackType === 'bug'
+              ? 'Mô tả lỗi bạn gặp phải, bao gồm các bước tái hiện nếu có...'
+              : 'Nhập ý kiến đóng góp của bạn...'
+          "
           v-model="content"
           class="min-h-[120px] resize-none text-sm"
           :class="contentError ? 'border-destructive focus-visible:ring-destructive/30' : ''"
@@ -265,7 +299,6 @@ async function handleSendAnother() {
       </div>
 
       <div class="py-1">
-        <div v-if="!turnstileToken" class="h-[65px] w-[300px] rounded-md bg-muted animate-pulse" />
         <div ref="turnstileContainer" />
       </div>
 
@@ -277,8 +310,19 @@ async function handleSendAnother() {
         >
           <span v-if="isSubmitting" class="flex items-center gap-2">
             <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
             Đang gửi...
           </span>

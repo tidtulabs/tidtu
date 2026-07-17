@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
-import NavBarView from './NavBarView.vue';
+import { RouterView } from "vue-router";
+import NavBarView from "./NavBarView.vue";
 </script>
 <template>
   <div
@@ -12,7 +12,7 @@ import NavBarView from './NavBarView.vue';
       </div>
     </aside>
     <main class="min-w-0">
-      <div class="w-full lg:py-8 py-6">
+      <div class="w-full lg:py-8 py-6 pb-2">
         <RouterView />
       </div>
     </main>

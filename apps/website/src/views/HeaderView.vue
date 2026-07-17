@@ -2,7 +2,13 @@
 import { ref } from "vue";
 import { useColorMode } from "@vueuse/core";
 import { RouterLink } from "vue-router";
-import { IconSunHigh, IconBrandGithub, IconMoonStars, IconSunMoon, IconMenu2 } from "@tabler/icons-vue";
+import {
+  IconSunHigh,
+  IconBrandGithub,
+  IconMoonStars,
+  IconSunMoon,
+  IconMenu2,
+} from "@tabler/icons-vue";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Logo from "@/assets/icons/logo.svg";
 import NavBarMobileView from "./NavBarMobileView.vue";
@@ -54,7 +60,7 @@ const open = ref(false);
           <SheetTrigger aria-label="Mở menu">
             <IconMenu2 class="w-6 h-6 hover:text-primary" />
           </SheetTrigger>
-          <SheetContent class="px-0 gap-0">
+          <SheetContent class="px-0 gap-0" side="right">
             <div class="flex items-center gap-2 px-4 h-14 border-b border-border">
               <Logo class="w-7 h-7" />
               <span class="font-bold text-base">TIDTU</span>

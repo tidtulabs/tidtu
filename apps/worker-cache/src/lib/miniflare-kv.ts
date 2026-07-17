@@ -5,7 +5,8 @@ let mf: Miniflare | null = null;
 let kv: any = null;
 
 const PERSIST_DIR = resolve(__dirname, "../../../worker-pdaotao/.wrangler/state/v3/kv");
-const KV_NAMESPACE_ID = process.env.CLOUDFLARE_KV_NAMESPACE_ID || "e005913ce4b04361815155aed5a3e2dc";
+const KV_NAMESPACE_ID =
+  process.env.CLOUDFLARE_KV_NAMESPACE_ID || "e005913ce4b04361815155aed5a3e2dc";
 
 export async function getKVNamespace(): Promise<any> {
   if (kv) return kv;
@@ -16,11 +17,10 @@ export async function getKVNamespace(): Promise<any> {
         {
           type: "ESModule",
           path: "mf-bootstrap.mjs",
-          contents:
-            'export default { fetch() { return new Response("ok"); } }',
+          contents: 'export default { fetch() { return new Response("ok"); } }',
         },
       ],
-      kvNamespaces: { "CACHE_TIDTU": KV_NAMESPACE_ID },
+      kvNamespaces: { CACHE_TIDTU: KV_NAMESPACE_ID },
       kvPersist: PERSIST_DIR,
     });
   }
