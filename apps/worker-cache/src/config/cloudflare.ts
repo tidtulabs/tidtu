@@ -56,7 +56,7 @@ async function createCloudflareKV(): Promise<KV | null> {
           account_id: accountId,
         });
         if (!res) return null;
-        const data = await res.json();
+        const data = await res.text();
         return data;
       } catch (error: any) {
         if (error?.status === 404) return null;
