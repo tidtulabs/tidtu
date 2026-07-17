@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useMediaQuery } from "@vueuse/core";
-import { useVirtualizer } from "@tanstack/vue-virtual";
 import { IconFileDownload, IconLoader3, IconSparkles } from "@tabler/icons-vue";
 import { FlexRender } from "@tanstack/vue-table";
 import type { Table as TableType } from "@tanstack/vue-table";
@@ -35,32 +34,14 @@ const allowMobileScroll = computed(() => {
   return props.showUploadDateOnMobile === true || props.showPageOnMobile === true;
 });
 
-const scrollContainer = ref<HTMLDivElement | null>(null);
-
 const rows = computed(() => props.table.getRowModel().rows);
-
-const virtualizerCount = computed(() => {
-  const base = rows.value.length;
-  return props.isFetchingAll ? base + 3 : base;
-});
-
-const virtualizerOptions = computed(() => ({
-  count: virtualizerCount.value,
-  getScrollElement: () => scrollContainer.value,
-  estimateSize: () => 36,
-  overscan: 5,
-}));
-const virtualizer = useVirtualizer(virtualizerOptions);
-
-const vItems = computed(() => virtualizer.value.getVirtualItems());
-const totalSize = computed(() => virtualizer.value.getTotalSize());
 </script>
 
 <template>
   <div
     class="border-y border-x border-border rounded-lg bg-card overflow-hidden flex flex-col flex-1"
   >
-    <div ref="scrollContainer" class="overflow-auto flex-1">
+    <div class="overflow-auto flex-1">
       <Table :class="[allowMobileScroll ? 'min-w-0' : '', !allowMobileScroll ? 'table-fixed' : '']">
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -89,108 +70,85 @@ const totalSize = computed(() => virtualizer.value.getTotalSize());
 
         <TableBody class="text-sm sm:text-base">
           <template v-if="rows.length || isFetchingAll">
-            <tr
-              v-if="vItems.length > 0"
-              :style="{ height: `${vItems[0].start}px` }"
-              class="m-0 p-0 border-0"
-            />
-
-            <TableRow
-              v-for="virtualRow in vItems"
-              :key="String(virtualRow.key)"
-              :class="[
-                virtualRow.index >= rows.length
-                  ? 'hover:bg-transparent'
-                  : 'hover:bg-muted/50 transition-colors',
-              ]"
-            >
-              <template v-if="virtualRow.index < rows.length">
-                <TableCell
-                  v-for="cell in rows[virtualRow.index].getVisibleCells()"
-                  :key="cell.id"
-                  :class="[
-                    'py-2 px-2 sm:px-4 min-w-0 font-medium text-foreground',
-                    cell.column.id === 'examTitle'
-                      ? allowMobileScroll
-                        ? 'min-w-[220px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full'
-                        : 'min-w-[200px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full'
-                      : '',
-                    cell.column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
-                    cell.column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
-                    cell.column.id === 'examDetailsUrl' ? 'w-20 md:w-24 shrink-0 text-center' : '',
-                  ]"
-                >
-                  <template v-if="cell.column.id === 'examDetailsUrl'">
-                    <div
-                      role="button"
-                      :aria-label="`Tải xuống ${rows[virtualRow.index].original.examTitle}`"
-                      title="Tải xuống đề thi"
-                      @click="
-                        emit(
-                          'download',
-                          rows[virtualRow.index].original.row,
-                          rows[virtualRow.index].original.examDetailsUrl,
-                        )
-                      "
-                    >
-                      <IconLoader3
-                        v-if="downloadingRows.has(rows[virtualRow.index].original.row)"
-                        class="w-7 h-7 mx-auto text-primary/80 animate-spin-fast pointer-events-none"
-                      />
-                      <IconFileDownload
-                        v-else
-                        class="w-7 h-7 stroke-[1.25] cursor-pointer mx-auto text-primary/80 hover:text-primary hover:scale-110 transition-transform ease-in-out"
-                      />
-                    </div>
-                  </template>
-                  <template v-else-if="cell.column.id === 'examTitle'">
-                    <div class="flex gap-2 items-start min-w-0">
-                      <span class="font-medium text-foreground break-words min-w-0 flex-1">
-                        {{ cell.getValue() as string }}
-                      </span>
-                      <IconSparkles
-                        v-if="rows[virtualRow.index].original.isNew"
-                        class="w-4 h-4 text-yellow-500 animate-pulse stroke-1.5 shrink-0 mt-0.5"
-                      />
-                    </div>
-                  </template>
-                  <template v-else>
-                    <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                  </template>
-                </TableCell>
-              </template>
-              <template v-else>
-                <TableCell
-                  v-for="column in table.getVisibleFlatColumns()"
-                  :key="column.id"
-                  :class="[
-                    'py-2.5 px-2 sm:px-4 min-w-0',
-                    column.id === 'examTitle'
-                      ? allowMobileScroll
-                        ? 'min-w-[220px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full'
-                        : 'min-w-[200px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full'
-                      : '',
-                    column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
-                    column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
-                    column.id === 'examDetailsUrl' ? 'w-20 md:w-24 shrink-0 text-center' : '',
-                  ]"
-                >
-                  <Skeleton
-                    :class="[
-                      'h-4 animate-pulse',
-                      column.id === 'examTitle' ? 'w-3/4' : 'w-12',
-                      column.id === 'examDetailsUrl' ? 'h-8 w-8 rounded-md mx-auto' : 'rounded',
-                    ]"
-                  />
-                </TableCell>
-              </template>
+            <TableRow v-for="row in rows" :key="row.id" class="hover:bg-muted/50 transition-colors">
+              <TableCell
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                :class="[
+                  'py-2 px-2 sm:px-4 min-w-0 font-medium text-foreground',
+                  cell.column.id === 'examTitle'
+                    ? allowMobileScroll
+                      ? 'min-w-[220px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full'
+                      : 'min-w-[200px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full'
+                    : '',
+                  cell.column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
+                  cell.column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
+                  cell.column.id === 'examDetailsUrl' ? 'w-20 md:w-24 shrink-0 text-center' : '',
+                ]"
+              >
+                <template v-if="cell.column.id === 'examDetailsUrl'">
+                  <div
+                    role="button"
+                    :aria-label="`Tải xuống ${row.original.examTitle}`"
+                    title="Tải xuống đề thi"
+                    @click="emit('download', row.original.row, row.original.examDetailsUrl)"
+                  >
+                    <IconLoader3
+                      v-if="downloadingRows.has(row.original.row)"
+                      class="w-7 h-7 mx-auto text-primary/80 animate-spin-fast pointer-events-none"
+                    />
+                    <IconFileDownload
+                      v-else
+                      class="w-7 h-7 stroke-[1.25] cursor-pointer mx-auto text-primary/80 hover:text-primary hover:scale-110 transition-transform ease-in-out"
+                    />
+                  </div>
+                </template>
+                <template v-else-if="cell.column.id === 'examTitle'">
+                  <div class="flex gap-2 items-start min-w-0">
+                    <span class="font-medium text-foreground break-words min-w-0 flex-1">
+                      {{ cell.getValue() as string }}
+                    </span>
+                    <IconSparkles
+                      v-if="row.original.isNew"
+                      class="w-4 h-4 text-yellow-500 animate-pulse stroke-1.5 shrink-0 mt-0.5"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                </template>
+              </TableCell>
             </TableRow>
 
-            <tr
-              v-if="vItems.length > 0"
-              :style="{ height: `${totalSize - vItems[vItems.length - 1].end}px` }"
-              class="m-0 p-0 border-0"
-            />
+            <TableRow
+              v-for="i in isFetchingAll ? 3 : 0"
+              :key="'skeleton-' + i"
+              class="hover:bg-transparent"
+            >
+              <TableCell
+                v-for="column in table.getVisibleFlatColumns()"
+                :key="column.id"
+                :class="[
+                  'py-2.5 px-2 sm:px-4 min-w-0',
+                  column.id === 'examTitle'
+                    ? allowMobileScroll
+                      ? 'min-w-[220px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full'
+                      : 'min-w-[200px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full'
+                    : '',
+                  column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
+                  column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
+                  column.id === 'examDetailsUrl' ? 'w-20 md:w-24 shrink-0 text-center' : '',
+                ]"
+              >
+                <Skeleton
+                  :class="[
+                    'h-4 animate-pulse',
+                    column.id === 'examTitle' ? 'w-3/4' : 'w-12',
+                    column.id === 'examDetailsUrl' ? 'h-8 w-8 rounded-md mx-auto' : 'rounded',
+                  ]"
+                />
+              </TableCell>
+            </TableRow>
           </template>
           <template v-else>
             <TableRow>
