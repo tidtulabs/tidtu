@@ -52,14 +52,12 @@ export const cachedRedis = async (_: Request, res: Response) => {
     const KV = await getKV();
     const now = Date.now();
 
-    const existing = await KV.get("cacheStatus");
-    if (existing) {
-      const status = JSON.parse(existing);
-      if (status.status === "updating" && now - status.startedAt < 300000) {
-        logger.info("cache update already in progress, skipping");
-        res.status(200).json({ success: true, message: "already in progress" });
-        return;
-      }
+    const existingRaw = await KV.get("cacheStatus");
+    const existing = existingRaw ? JSON.parse(existingRaw) : null;
+    if (existing && existing.status === "updating" && now - existing.startedAt < 300000) {
+      logger.info("cache update already in progress, skipping");
+      res.status(200).json({ success: true, message: "already in progress" });
+      return;
     }
 
     await KV.put("cacheStatus", JSON.stringify({ status: "updating", startedAt: now }));
