@@ -58,7 +58,8 @@ async function createCloudflareKV(): Promise<KV | null> {
         if (!res) return null;
         const data = await res.json();
         return data;
-      } catch (error) {
+      } catch (error: any) {
+        if (error?.status === 404) return null;
         console.error("Error retrieving data:", error);
         return null;
       }
