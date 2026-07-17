@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomePage from "@/views/HomePage.vue";
-import PDaoTaoLayout from "./views/PDaoTaoLayout.vue";
+import PDaotaoLayout from "./views/PDaotaoLayout.vue";
 
 const routes = [
   {
@@ -10,11 +10,11 @@ const routes = [
   },
   {
     path: "/pdaotao",
-    component: PDaoTaoLayout,
+    component: PDaotaoLayout,
     children: [
       {
         path: "",
-        component: () => import("@/views/PDaoTaoPage.vue"),
+        component: () => import("@/views/PDaotaoPage.vue"),
         meta: { title: "P. Đào Tạo | TIDTU" },
       },
       {
