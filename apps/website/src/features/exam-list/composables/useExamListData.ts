@@ -101,14 +101,14 @@ export function useExamListData() {
   async function fetchMore(isChecked: boolean) {
     if (isChecked) {
       if (examsTotal.value.length > 0) {
-        exams.value = examsTotal.value;
+        exams.value = [...exams.value, ...examsTotal.value];
       } else {
         fetchingFlag.value.isFetching = true;
         try {
           const res = await fetchMoreMutation.mutateAsync();
           if (res?.data) {
             examsTotal.value = res.data;
-            exams.value = res.data;
+            exams.value = [...exams.value, ...res.data];
           }
         } catch {
           errorToast.show("Lỗi", "Đã xảy ra lỗi khi tải thêm dữ liệu");
