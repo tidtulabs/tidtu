@@ -81,16 +81,19 @@ export const fetchExamList = async (c: Context) => {
         meta: { ...cachedData?.meta, isUpdated: true },
       };
     }
-    const isUpdated = await c.env.CACHE_TIDTU.get("isUpdated");
-    console.log("isUpdated", isUpdated);
-    if (!isUpdated) {
+    const cacheStatusRaw = await c.env.CACHE_TIDTU.get("cacheStatus");
+    const cacheStatus = cacheStatusRaw ? JSON.parse(cacheStatusRaw) : null;
+    const isUpdating =
+      cacheStatus?.status === "updating" && Date.now() - cacheStatus.startedAt < 300000;
+    console.log("cacheStatus", cacheStatus);
+    if (!isUpdating) {
       console.log("New data found, updating cache...");
       const url = `${c.env.CACHE_SERVICE_API}/api/v1/pdaotao/cache/exams`;
-      fetch(url, { method: "POST" }).catch(() => {});
+      c.executionCtx.waitUntil(fetch(url, { method: "POST" }).catch(() => {}));
     }
     return {
       data: cachedData?.data || [],
-      meta: { ...cachedData?.meta, isUpdated: !!isUpdated },
+      meta: { ...cachedData?.meta, isUpdated: false },
     };
   } catch (error: any) {
     // logger.error(error.message);

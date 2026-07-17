@@ -16,7 +16,7 @@ async function poll() {
   }
   try {
     const res = await checkExamListUpdate();
-    if (res.isUpdated) {
+    if (res.status === "ready") {
       pollTimer = null;
       toast.success("Có dữ liệu mới", {
         description: "Tải lại trang để sử dụng dữ liệu mới nhất.",
@@ -25,6 +25,11 @@ async function poll() {
           label: "Tải lại",
           onClick: () => location.reload(),
         },
+      });
+    } else if (res.status === "failed") {
+      pollTimer = null;
+      toast.error("Đồng bộ thất bại", {
+        description: "Có lỗi xảy ra khi đồng bộ dữ liệu, vui lòng thử lại sau.",
       });
     } else {
       pollTimer = setTimeout(poll, INTERVAL);
@@ -36,9 +41,9 @@ async function poll() {
 
 export function useUpdateStatusPoller() {
   function start() {
+    if (pollTimer) return;
     const id = toast.loading("Đã phát hiện dữ liệu mới, đang đồng bộ...");
     setTimeout(() => toast.dismiss(id), 5000);
-    if (pollTimer) return;
     pollTimer = setTimeout(poll, INTERVAL);
   }
 

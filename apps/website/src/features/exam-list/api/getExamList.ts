@@ -43,7 +43,12 @@ export function useExamListQuery({ queryConfig = {} }: UseExamListOptions = {}) 
   });
 }
 
-export type UpdateStatusResponse = { isUpdated: boolean };
+export type UpdateStatusResponse = {
+  isUpdated: boolean;
+  status: "updating" | "ready" | "failed" | null;
+  startedAt: number | null;
+  elapsed: number;
+};
 
 export const checkExamListUpdate = async (): Promise<UpdateStatusResponse> => {
   const response = await fetch(

@@ -50,12 +50,24 @@ const Task = async (
 export const cachedRedis = async (_: Request, res: Response) => {
   try {
     const KV = await getKV();
-    await KV.put("isUpdated", "true", { expirationTtl: 120 });
+    const now = Date.now();
+
+    const existing = await KV.get("cacheStatus");
+    if (existing) {
+      const status = JSON.parse(existing);
+      if (status.status === "updating" && now - status.startedAt < 300000) {
+        logger.info("cache update already in progress, skipping");
+        res.status(200).json({ success: true, message: "already in progress" });
+        return;
+      }
+    }
+
+    await KV.put("cacheStatus", JSON.stringify({ status: "updating", startedAt: now }));
     const task1 = await Task("", [], 7);
     const task2 = await Task(task1.meta.nextPagination, [], 0, true);
     await KV.put("examList:frequency", JSON.stringify(task1));
     await KV.put("examList:total", JSON.stringify(task2));
-    await KV.delete("isUpdated");
+    await KV.put("cacheStatus", JSON.stringify({ status: "ready", lastSuccessAt: Date.now() }));
 
     logger.info("create cache KV successfull");
 
@@ -65,6 +77,10 @@ export const cachedRedis = async (_: Request, res: Response) => {
       data: null,
     });
   } catch (error: any) {
+    try {
+      const KV = await getKV();
+      await KV.put("cacheStatus", JSON.stringify({ status: "failed", failedAt: Date.now() }));
+    } catch {}
     logger.error(error.message);
     res.status(500).json({
       success: false,

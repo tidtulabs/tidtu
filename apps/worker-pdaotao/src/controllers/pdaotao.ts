@@ -39,9 +39,16 @@ export const fetchExamDownloadLink = async (c: Context) => {
 
 export const checkExamListUpdate = async (c: Context) => {
   try {
-    const flag = await c.env.CACHE_TIDTU.get("isUpdated");
-    return response.success(c, { isUpdated: !flag });
+    const raw = await c.env.CACHE_TIDTU.get("cacheStatus");
+    const status = raw ? JSON.parse(raw) : null;
+    const now = Date.now();
+    return response.success(c, {
+      isUpdated: status?.status === "ready",
+      status: status?.status || null,
+      startedAt: status?.startedAt || null,
+      elapsed: status?.startedAt ? now - status.startedAt : 0,
+    });
   } catch {
-    return response.success(c, { isUpdated: true });
+    return response.success(c, { isUpdated: true, status: "ready", startedAt: null, elapsed: 0 });
   }
 };
