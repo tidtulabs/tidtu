@@ -42,9 +42,15 @@ export const checkExamListUpdate = async (c: Context) => {
     const raw = await c.env.CACHE_TIDTU.get("cacheStatus");
     const status = raw ? JSON.parse(raw) : null;
     const now = Date.now();
+
+    let resolvedStatus = status?.status || null;
+    if (status?.status === "ready" && status?.lastSuccessAt && now - status.lastSuccessAt < 10000) {
+      resolvedStatus = "updating";
+    }
+
     return response.success(c, {
-      isUpdated: status?.status === "ready",
-      status: status?.status || null,
+      isUpdated: resolvedStatus === "ready",
+      status: resolvedStatus,
       startedAt: status?.startedAt || null,
       elapsed: status?.startedAt ? now - status.startedAt : 0,
     });
