@@ -1,6 +1,7 @@
 import { onUnmounted } from "vue";
 import { toast } from "vue-sonner";
 import { checkExamListUpdate } from "../api/getExamList";
+import { submitQuickBugReport } from "@/features/feedback/api/quickBugReport";
 
 const MAX_POLLS = 5;
 const INTERVAL = 60000;
@@ -28,9 +29,20 @@ async function poll() {
       });
     } else if (res.status === "failed") {
       pollTimer = null;
-      toast.error("Đồng bộ thất bại", {
+      const id = toast.error("Đồng bộ thất bại", {
         description: "Có lỗi xảy ra khi đồng bộ dữ liệu, vui lòng thử lại sau.",
+        action: {
+          label: "Báo lỗi",
+          onClick: () => {
+            submitQuickBugReport({
+              message: "Đồng bộ dữ liệu kỳ thi thất bại",
+              page: window.location.href,
+              details: JSON.stringify(res),
+            }).catch(() => {});
+          },
+        },
       });
+      setTimeout(() => toast.dismiss(id), 30000);
     } else {
       pollTimer = setTimeout(poll, INTERVAL);
     }
