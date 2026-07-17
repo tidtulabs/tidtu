@@ -1,0 +1,8 @@
+# Local development secrets for `wrangler dev`
+# These values are NEVER committed or deployed — they are dev-only overrides.
+# Production secrets are set via: wrangler secret put <NAME>
+
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/REPLACE_ME
+NODE_ENV=dev
+CORS_ORIGIN=*

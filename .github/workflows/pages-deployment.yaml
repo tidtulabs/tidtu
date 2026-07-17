@@ -1,0 +1,43 @@
+name: Deploy to Cloudflare Pages
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+    paths:
+      - 'apps/website/**'
+      - '.github/workflows/pages-deployment.yaml'
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Run build
+        env:
+          VITE_GATEWAY_SERVICE: ${{ vars.VITE_GATEWAY_SERVICE }}
+          VITE_CACHE_SERVICE: ${{ vars.VITE_CACHE_SERVICE }}
+          VITE_TURNSTILE_SITEKEY: ${{ vars.VITE_TURNSTILE_SITEKEY}}
+        run: pnpm --filter website run build
+      - name: Publish
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: tidtu-website
+          directory: apps/website/dist
+          gitHubToken: ${{ secrets.TOKEN_GITHUB }}
