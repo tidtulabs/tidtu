@@ -7,20 +7,31 @@
 		"dev:remote": "pnpm dev:stop && turbo dev:remote",
 		"dev:stop": "npx kill-port 5173 3000 3001 4001 4002 4003",
 		"lint": "turbo lint",
-		"format": "prettier --write \"**/*.{ts,tsx,md}\""
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"clean": "rimraf --glob **/node_modules",
+		"clean:all": "pnpm clean && pnpm store prune",
+		"prepare": "husky"
 	},
 	"workspaces": [
 		"apps/*",
 		"packages/*"
 	],
 	"devDependencies": {
+		"husky": "^9.1.7",
+		"lint-staged": "^17.0.8",
 		"prettier": "^3.2.5",
+		"rimraf": "^6.1.3",
 		"turbo": "^2.3.3",
 		"typescript": "5.5.4",
-		"wrangler": "^4.110.0"
+		"wrangler": "^4.111.0"
 	},
-	"packageManager": "pnpm@9.0.0",
+	"packageManager": "pnpm@11.13.1",
 	"engines": {
 		"node": ">=18"
+	},
+	"lint-staged": {
+		"*.{ts,tsx,vue,md}": [
+			"prettier --write"
+		]
 	}
 }

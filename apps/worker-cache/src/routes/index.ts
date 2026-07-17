@@ -6,4 +6,3 @@ const router: Router = Router();
 router.use("/pdaotao", pdaotaoCached);
 
 export default router;
-

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useHead } from "@unhead/vue";
 import DefaultLayout from "@/views/DefaultLayout.vue";
-import { Toaster } from "./components/ui/sonner";
+import { Toaster } from "vue-sonner";
 
 useHead({
   title: "TIDTU",
@@ -38,9 +38,9 @@ useHead({
       }),
     },
   ],
-})
+});
 </script>
 <template>
   <DefaultLayout />
-  <Toaster />
+  <Toaster position="bottom-right" />
 </template>

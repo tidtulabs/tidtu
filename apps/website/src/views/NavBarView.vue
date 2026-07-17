@@ -32,13 +32,21 @@ const navItems = [
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="group flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[15px] font-medium transition-all duration-200"
-          :class="isActive(item.to) ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'"
+          class="group relative flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[15px] font-medium transition-all duration-300 ease-out"
+          :class="
+            isActive(item.to)
+              ? 'bg-primary/10 text-primary font-semibold translate-x-0.5'
+              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground hover:translate-x-0.5'
+          "
         >
           <component
             :is="item.icon"
-            class="w-5 h-5 shrink-0"
-            :class="isActive(item.to) ? 'text-primary' : 'text-muted-foreground/80 group-hover:text-foreground'"
+            class="w-5 h-5 shrink-0 transition-colors duration-300 ease-out"
+            :class="
+              isActive(item.to)
+                ? 'text-primary'
+                : 'text-muted-foreground/80 group-hover:text-foreground'
+            "
           />
           <span>{{ item.title }}</span>
         </RouterLink>

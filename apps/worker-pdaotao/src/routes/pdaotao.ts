@@ -3,6 +3,7 @@ import { Hono } from "hono";
 const router = new Hono();
 
 router.get("/exams", pdaotao.getExamList);
+router.get("/exams/status", pdaotao.checkExamListUpdate);
 router.get("/exams/:examId/download", pdaotao.fetchExamDownloadLink);
 
 export default router;
