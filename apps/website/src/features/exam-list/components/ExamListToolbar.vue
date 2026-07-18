@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   IconAdjustmentsHorizontal,
+  IconHelpCircle,
   IconLayoutListFilled,
   IconListNumbers,
   IconX,
@@ -27,6 +28,7 @@ const emit = defineEmits<{
   "toggle:uploadDate": [value: boolean];
   "toggle:page": [value: boolean];
   "toggle:pagination": [value: boolean];
+  tour: [];
 }>();
 
 function onSearchFocus() {
@@ -38,7 +40,7 @@ function onSearchFocus() {
   <div
     class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-2 bg-background relative md:border-b-0 before:absolute before:content-[''] before:left-2 before:right-2 before:bottom-0 before:h-px before:bg-border md:before:hidden"
   >
-    <div class="relative w-full md:max-w-md min-w-0">
+    <div class="relative w-full md:max-w-md min-w-0" data-tour="search-input">
       <Input
         id="search"
         type="text"
@@ -81,7 +83,7 @@ function onSearchFocus() {
     <div
       class="flex items-center justify-between md:justify-end gap-4 text-sm w-full md:w-auto shrink-0"
     >
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3" data-tour="load-all-toggle">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger class="flex items-center gap-2">
@@ -104,7 +106,10 @@ function onSearchFocus() {
           </Tooltip>
         </TooltipProvider>
 
-        <div class="flex items-center gap-2 text-muted-foreground shrink-0 h-8">
+        <div
+          class="flex items-center gap-2 text-muted-foreground shrink-0 h-8"
+          data-tour="pagination-badge"
+        >
           <span
             class="md:hidden flex items-center gap-1.5 bg-muted px-2.5 py-0.5 rounded-full text-[10px] font-semibold border h-6 shrink-0 transition-all duration-300"
             :class="
@@ -130,15 +135,18 @@ function onSearchFocus() {
       </div>
 
       <div class="flex items-center gap-1">
-        <button
-          type="button"
-          class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-muted shrink-0 text-muted-foreground transition-colors"
-          aria-label="Bật/tắt phân trang"
-          @click="emit('toggle:pagination', !showPagination)"
-        >
-          <IconListNumbers v-if="showPagination" class="w-4 h-4" />
-          <IconLayoutListFilled v-else class="w-4 h-4" />
-        </button>
+        <div class="relative">
+          <button
+            type="button"
+            class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-muted shrink-0 text-muted-foreground transition-colors"
+            aria-label="Bật/tắt phân trang"
+            data-tour="pagination-toggle"
+            @click="emit('toggle:pagination', !showPagination)"
+          >
+            <IconListNumbers v-if="showPagination" class="w-4 h-4" />
+            <IconLayoutListFilled v-else class="w-4 h-4" />
+          </button>
+        </div>
 
         <Popover>
           <PopoverTrigger as-child>
@@ -147,6 +155,7 @@ function onSearchFocus() {
               size="icon"
               class="h-9 w-9 rounded-md border border-border bg-background hover:bg-muted shrink-0"
               aria-label="Cấu hình hiển thị"
+              data-tour="display-config"
             >
               <IconAdjustmentsHorizontal class="w-4 h-4 text-muted-foreground" />
             </Button>
@@ -181,6 +190,16 @@ function onSearchFocus() {
             </div>
           </PopoverContent>
         </Popover>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-9 w-9 rounded-md border border-border bg-background hover:bg-muted shrink-0"
+          data-tour="help-button"
+          @click="emit('tour')"
+        >
+          <IconHelpCircle class="w-4 h-4 text-muted-foreground" />
+        </Button>
       </div>
     </div>
   </div>

@@ -25,6 +25,7 @@
 		"@vueuse/core": "^14.3.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"driver.js": "^1.7.0",
 		"radix-vue": "^1.9.12",
 		"reka-ui": "^2.10.1",
 		"shadcn-vue": "^2.8.0",
