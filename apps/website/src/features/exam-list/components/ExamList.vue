@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, shallowRef, computed, watch } from "vue";
-import { useDebounceFn, useMediaQuery } from "@vueuse/core";
+import { useDebounceFn, useMediaQuery, useLocalStorage } from "@vueuse/core";
 import {
   useVueTable,
   getCoreRowModel,
@@ -13,6 +13,7 @@ import { rankItem } from "@tanstack/match-sorter-utils";
 import type { ColumnDef, ColumnFiltersState, VisibilityState, FilterFn } from "@tanstack/vue-table";
 import { useExamListData } from "../composables/useExamListData";
 import { useExamListVisibility } from "../composables/useExamListVisibility";
+import { useExamListTour } from "../composables/useExamListTour";
 import type { ExamItem } from "../types/exam";
 import ExamListLoading from "./ExamListLoading.vue";
 import ExamListToolbar from "./ExamListToolbar.vue";
@@ -39,6 +40,8 @@ const isDesktop = useMediaQuery("(min-width: 768px)");
 
 const currentUrl = window.location.href;
 
+const newPaginationSeen = useLocalStorage("examlist:newPaginationSeen", false);
+
 const {
   exams,
   isPending,
@@ -60,6 +63,28 @@ const {
   togglePage,
   togglePagination,
 } = useExamListVisibility();
+
+const { startTour, highlightNewPagination, hasSeen } = useExamListTour();
+
+const tourAutoStarted = shallowRef(false);
+watch(
+  [isPending, exams],
+  ([pending, data]) => {
+    if (tourAutoStarted.value || pending || data.length === 0) return;
+    tourAutoStarted.value = true;
+    if (!hasSeen) {
+      setTimeout(() => startTour(), 500);
+    } else if (!newPaginationSeen.value) {
+      setTimeout(() => highlightNewPagination(), 500);
+    }
+  },
+  { immediate: true },
+);
+
+function onTogglePagination(checked: boolean) {
+  togglePagination(checked);
+  newPaginationSeen.value = true;
+}
 
 const globalFilter = shallowRef("");
 const searchInput = shallowRef("");
@@ -210,7 +235,8 @@ watch(
       @toggle:load-all="fetchMore"
       @toggle:upload-date="toggleUploadDate"
       @toggle:page="togglePage"
-      @toggle:pagination="togglePagination"
+      @toggle:pagination="onTogglePagination"
+      @tour="startTour"
     />
 
     <div

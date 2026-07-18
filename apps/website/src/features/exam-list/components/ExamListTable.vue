@@ -39,7 +39,8 @@ const rows = computed(() => props.table.getRowModel().rows);
 
 <template>
   <div
-    class="border-y border-x border-border rounded-lg bg-card flex flex-col md:flex-1 md:min-h-0 min-w-0"
+    class="border-y border-x border-border rounded-lg bg-background flex flex-col md:flex-1 md:min-h-0 min-w-0"
+    data-tour="exam-table"
   >
     <div class="min-w-0 flex-1 overflow-auto md:min-h-0">
       <Table
