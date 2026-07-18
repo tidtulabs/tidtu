@@ -4,7 +4,7 @@ import NavBarView from "./NavBarView.vue";
 </script>
 <template>
   <div
-    class="mx-auto flex-1 w-full min-h-0 min-w-0 px-0 sm:px-2 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[260px_minmax(0,1fr)]"
+    class="mx-auto flex-1 w-full min-h-0 min-w-0 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[260px_minmax(0,1fr)]"
   >
     <aside class="hidden md:block border-r border-border/60">
       <div class="sticky top-[57px] py-6 lg:py-8 pr-4">

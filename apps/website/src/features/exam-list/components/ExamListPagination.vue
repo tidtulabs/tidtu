@@ -79,13 +79,13 @@ function goTo(value: number) {
 <template>
   <div
     v-if="showPagination && pageCount > 1"
-    class="flex flex-wrap items-center justify-center gap-3 py-2 px-1"
+    class="flex flex-wrap items-center justify-center gap-3 py-2 px-2"
   >
     <!-- Mobile: prev/next + editable page input -->
     <div class="flex md:hidden items-center justify-between w-full gap-0">
       <button
         type="button"
-        class="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-border text-foreground transition-colors hover:bg-muted active:bg-muted disabled:pointer-events-none disabled:border-muted disabled:text-muted-foreground/40 shrink-0 px-2.5"
+        class="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-border text-foreground transition-colors hover:bg-muted active:bg-muted disabled:pointer-events-none disabled:opacity-50 shrink-0 px-2.5"
         :disabled="currentPage <= 1"
         aria-label="Trang trước"
         @click="goTo(currentPage - 1)"
@@ -113,7 +113,7 @@ function goTo(value: number) {
 
       <button
         type="button"
-        class="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-border text-foreground transition-colors hover:bg-muted active:bg-muted disabled:pointer-events-none disabled:border-muted disabled:text-muted-foreground/40 shrink-0 px-2.5"
+        class="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-border text-foreground transition-colors hover:bg-muted active:bg-muted disabled:pointer-events-none disabled:opacity-50 shrink-0 px-2.5"
         :disabled="currentPage >= pageCount"
         aria-label="Trang sau"
         @click="goTo(currentPage + 1)"
