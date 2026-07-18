@@ -51,7 +51,7 @@ const cards = [
 </script>
 
 <template>
-  <div class="flex flex-col container lg:py-8 py-6 mx-auto">
+  <div class="flex flex-col lg:py-8 py-6 px-2">
     <div>
       <h1
         class="lg:text-5xl md:text-4xl text-3xl text-primary text-center font-bold tracking-tight"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useHead } from "@unhead/vue";
 import DefaultLayout from "@/views/DefaultLayout.vue";
-import { Toaster } from "vue-sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 useHead({
   title: "TIDTU",

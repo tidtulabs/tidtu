@@ -125,7 +125,7 @@ async function handleSendAnother() {
 </script>
 
 <template>
-  <div class="max-w-5xl w-full">
+  <div class="max-w-5xl w-full pb-12">
     <div class="mb-8">
       <h2 class="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
         <span v-if="feedbackType === 'bug'">🐞 Báo lỗi</span>

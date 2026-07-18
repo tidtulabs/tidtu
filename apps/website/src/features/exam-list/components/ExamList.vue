@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { h, shallowRef } from "vue";
-import { useDebounceFn } from "@vueuse/core";
+import { h, shallowRef, computed, watch } from "vue";
+import { useDebounceFn, useMediaQuery } from "@vueuse/core";
 import {
   useVueTable,
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
   getExpandedRowModel,
+  getPaginationRowModel,
 } from "@tanstack/vue-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import type { ColumnDef, ColumnFiltersState, VisibilityState, FilterFn } from "@tanstack/vue-table";
@@ -16,6 +17,7 @@ import type { ExamItem } from "../types/exam";
 import ExamListLoading from "./ExamListLoading.vue";
 import ExamListToolbar from "./ExamListToolbar.vue";
 import ExamListTable from "./ExamListTable.vue";
+import ExamListPagination from "./ExamListPagination.vue";
 import QuickBugButton from "@/components/QuickBugButton.vue";
 
 declare module "@tanstack/vue-table" {
@@ -33,6 +35,8 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed;
 };
 
+const isDesktop = useMediaQuery("(min-width: 768px)");
+
 const currentUrl = window.location.href;
 
 const {
@@ -47,8 +51,15 @@ const {
   downloadFile,
 } = useExamListData();
 
-const { columnVisibility, showUploadDateOnMobile, showPageOnMobile, toggleUploadDate, togglePage } =
-  useExamListVisibility();
+const {
+  columnVisibility,
+  showUploadDateOnMobile,
+  showPageOnMobile,
+  showPagination,
+  toggleUploadDate,
+  togglePage,
+  togglePagination,
+} = useExamListVisibility();
 
 const globalFilter = shallowRef("");
 const searchInput = shallowRef("");
@@ -59,6 +70,7 @@ const debouncedSearch = useDebounceFn((value: string) => {
 function onSearchInput(value: string) {
   searchInput.value = value;
   debouncedSearch(value);
+  table.setPageIndex(0);
 }
 
 const columnFilters = shallowRef<ColumnFiltersState>([]);
@@ -101,8 +113,8 @@ const columns: ColumnDef<ExamItem>[] = [
   {
     accessorKey: "examDetailsUrl",
     header: () => [
-      h("span", { class: "md:hidden" }, "T.Xuống"),
-      h("span", { class: "hidden md:inline" }, "Tải xuống"),
+      h("span", { class: "lg:hidden" }, "T.Xuống"),
+      h("span", { class: "hidden lg:inline" }, "Tải xuống"),
     ],
     cell: () => null,
   },
@@ -123,6 +135,10 @@ const table = useVueTable({
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  initialState: {
+    pagination: { pageSize: 10 },
+  },
   onColumnFiltersChange: (updaterOrValue) => {
     columnFilters.value = valueUpdater(updaterOrValue, columnFilters.value);
   },
@@ -144,6 +160,21 @@ const table = useVueTable({
     },
   },
 });
+
+const filteredRowCount = computed(() => table.getFilteredRowModel().rows.length);
+
+watch(
+  [isDesktop, filteredRowCount, exams, showPagination],
+  () => {
+    if (!showPagination.value) {
+      table.setPageSize(exams.value.length || 10);
+    } else {
+      const current = table.getState().pagination.pageSize;
+      table.setPageSize(current === exams.value.length ? 10 : current);
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -166,28 +197,40 @@ const table = useVueTable({
       />
     </template>
   </div>
-  <div v-else class="flex-1 flex flex-col gap-0 -mt-6 lg:-mt-8">
+  <div v-else class="md:flex-1 flex flex-col gap-0 w-full min-h-0 min-w-0">
     <ExamListToolbar
+      class="shrink-0"
       :search="searchInput"
       :is-fetching-all="fetchingFlag.isFetching"
       :pagination-count="exams[exams.length - 1]?.pagination || 0"
       :show-upload-date="columnVisibility.uploadDate !== false"
       :show-page="columnVisibility.page !== false"
+      :show-pagination="showPagination"
       @update:search="onSearchInput"
       @toggle:load-all="fetchMore"
       @toggle:upload-date="toggleUploadDate"
       @toggle:page="togglePage"
+      @toggle:pagination="togglePagination"
     />
 
-    <div class="pt-4 pb-4 md:pb-6 flex flex-col gap-6 w-full flex-1">
+    <div
+      class="flex flex-col gap-4 w-full min-w-0 md:min-h-0 md:flex-1 px-1 pt-4 md:pt-1 pb-4 md:pb-6"
+    >
       <ExamListTable
         :table="table"
         :is-fetching-all="fetchingFlag.isFetching"
         :downloading-rows="downloadingRows"
-        :show-upload-date-on-mobile="columnVisibility.uploadDate !== false"
-        :show-page-on-mobile="columnVisibility.page !== false"
+        :show-upload-date-on-mobile="showUploadDateOnMobile"
+        :show-page-on-mobile="showPageOnMobile"
         @download="downloadFile"
       />
     </div>
+
+    <ExamListPagination
+      v-if="showPagination"
+      class="sticky bottom-0 z-10 bg-background/50 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/40 shrink-0"
+      :table="table"
+      :show-pagination="showPagination"
+    />
   </div>
 </template>

@@ -1,7 +1,12 @@
 import { ref, onMounted, onUnmounted } from "vue";
+import { useSessionStorage, useMediaQuery } from "@vueuse/core";
 import type { VisibilityState } from "@tanstack/vue-table";
 
+const COMPACT_TABLE_QUERY = "(max-width: 1023px)";
+
 export function useExamListVisibility() {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
   const columnVisibility = ref<VisibilityState>({
     examTitle: true,
     examDetailsUrl: true,
@@ -10,8 +15,9 @@ export function useExamListVisibility() {
     page: true,
   });
 
-  const showUploadDateOnMobile = ref(false);
-  const showPageOnMobile = ref(false);
+  const showUploadDateOnMobile = useSessionStorage("examlist:showUploadDateOnMobile", false);
+  const showPageOnMobile = useSessionStorage("examlist:showPageOnMobile", false);
+  const showPagination = useSessionStorage("examlist:showPagination", isDesktop.value);
 
   function toggleUploadDate(checked: boolean) {
     showUploadDateOnMobile.value = checked;
@@ -23,9 +29,13 @@ export function useExamListVisibility() {
     columnVisibility.value = { ...columnVisibility.value, page: checked };
   }
 
+  function togglePagination(checked: boolean) {
+    showPagination.value = checked;
+  }
+
   function updateColumnVisibility() {
-    const isMd = window.matchMedia("(max-width: 768px)").matches;
-    if (isMd) {
+    const isCompact = window.matchMedia(COMPACT_TABLE_QUERY).matches;
+    if (isCompact) {
       columnVisibility.value = {
         ...columnVisibility.value,
         uploadDate: showUploadDateOnMobile.value,
@@ -53,7 +63,9 @@ export function useExamListVisibility() {
     columnVisibility,
     showUploadDateOnMobile,
     showPageOnMobile,
+    showPagination,
     toggleUploadDate,
     togglePage,
+    togglePagination,
   };
 }

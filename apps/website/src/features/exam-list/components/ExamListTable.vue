@@ -27,10 +27,10 @@ const emit = defineEmits<{
   download: [row: number, examDetailsUrl: string];
 }>();
 
-const isMobile = useMediaQuery("(max-width: 768px)");
+const isCompactTable = useMediaQuery("(max-width: 1023px)");
 
-const allowMobileScroll = computed(() => {
-  if (!isMobile.value) return true;
+const allowCompactScroll = computed(() => {
+  if (!isCompactTable.value) return false;
   return props.showUploadDateOnMobile === true || props.showPageOnMobile === true;
 });
 
@@ -39,10 +39,14 @@ const rows = computed(() => props.table.getRowModel().rows);
 
 <template>
   <div
-    class="border-y border-x border-border rounded-lg bg-card overflow-hidden flex flex-col flex-1"
+    class="border-y border-x border-border rounded-lg bg-card flex flex-col md:flex-1 md:min-h-0 min-w-0"
   >
-    <div class="overflow-auto flex-1">
-      <Table :class="[allowMobileScroll ? 'min-w-0' : '', !allowMobileScroll ? 'table-fixed' : '']">
+    <div class="min-w-0 flex-1 overflow-auto md:min-h-0">
+      <Table
+        :class="[
+          allowCompactScroll ? 'min-w-max table-fixed lg:min-w-full' : 'min-w-full table-fixed',
+        ]"
+      >
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
             <TableHead
@@ -51,15 +55,15 @@ const rows = computed(() => props.table.getRowModel().rows);
               :class="[
                 'font-bold text-primary py-2.5 px-2 sm:px-4 text-xs sm:text-sm uppercase tracking-wide',
                 header.column.id === 'examDetailsUrl'
-                  ? 'text-center w-20 md:w-24 shrink-0 whitespace-nowrap'
+                  ? 'text-center w-20 md:w-24 whitespace-nowrap'
                   : header.column.id === 'examTitle'
-                    ? allowMobileScroll
-                      ? 'text-left min-w-[220px] max-w-[400px] whitespace-normal md:min-w-0 md:max-w-none md:w-full'
-                      : 'text-left min-w-[200px] max-w-[400px] whitespace-normal md:min-w-0 md:max-w-none md:w-full'
+                    ? allowCompactScroll
+                      ? 'text-left min-w-0 whitespace-normal lg:min-w-0 lg:w-full'
+                      : 'text-left w-full min-w-0 whitespace-normal'
                     : header.column.id === 'page'
-                      ? 'text-left w-20 md:w-auto whitespace-nowrap'
+                      ? 'text-left w-20 lg:w-28 whitespace-nowrap'
                       : header.column.id === 'uploadDate'
-                        ? 'text-left w-24 md:w-auto whitespace-nowrap'
+                        ? 'text-left w-28 lg:w-36 whitespace-nowrap'
                         : 'text-left whitespace-nowrap',
               ]"
             >
@@ -77,13 +81,13 @@ const rows = computed(() => props.table.getRowModel().rows);
                 :class="[
                   'py-2 px-2 sm:px-4 min-w-0 font-medium text-foreground',
                   cell.column.id === 'examTitle'
-                    ? allowMobileScroll
-                      ? 'min-w-[220px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full'
-                      : 'min-w-[200px] max-w-[400px] whitespace-normal break-words md:min-w-0 md:max-w-none md:w-full'
+                    ? allowCompactScroll
+                      ? 'min-w-0 whitespace-normal break-words lg:min-w-0 lg:w-full'
+                      : 'w-full min-w-0 whitespace-normal break-words'
                     : '',
-                  cell.column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
-                  cell.column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
-                  cell.column.id === 'examDetailsUrl' ? 'w-20 md:w-24 shrink-0 text-center' : '',
+                  cell.column.id === 'page' ? 'w-20 lg:w-28 whitespace-nowrap' : '',
+                  cell.column.id === 'uploadDate' ? 'w-28 lg:w-36 whitespace-nowrap' : '',
+                  cell.column.id === 'examDetailsUrl' ? 'w-20 md:w-24 text-center' : '',
                 ]"
               >
                 <template v-if="cell.column.id === 'examDetailsUrl'">
@@ -105,7 +109,10 @@ const rows = computed(() => props.table.getRowModel().rows);
                 </template>
                 <template v-else-if="cell.column.id === 'examTitle'">
                   <div class="flex gap-2 items-start min-w-0">
-                    <span class="font-medium text-foreground break-words min-w-0 flex-1">
+                    <span
+                      class="font-medium text-foreground break-words md:truncate min-w-0 flex-1"
+                      :title="cell.getValue() as string"
+                    >
                       {{ cell.getValue() as string }}
                     </span>
                     <IconSparkles
@@ -131,13 +138,13 @@ const rows = computed(() => props.table.getRowModel().rows);
                 :class="[
                   'py-2.5 px-2 sm:px-4 min-w-0',
                   column.id === 'examTitle'
-                    ? allowMobileScroll
-                      ? 'min-w-[220px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full'
-                      : 'min-w-[200px] max-w-[400px] md:min-w-0 md:max-w-none md:w-full'
+                    ? allowCompactScroll
+                      ? 'min-w-0 lg:min-w-0 lg:w-full'
+                      : 'w-full min-w-0'
                     : '',
-                  column.id === 'page' ? 'w-20 md:w-auto whitespace-nowrap' : '',
-                  column.id === 'uploadDate' ? 'w-24 md:w-auto whitespace-nowrap' : '',
-                  column.id === 'examDetailsUrl' ? 'w-20 md:w-24 shrink-0 text-center' : '',
+                  column.id === 'page' ? 'w-20 lg:w-28 whitespace-nowrap' : '',
+                  column.id === 'uploadDate' ? 'w-28 lg:w-36 whitespace-nowrap' : '',
+                  column.id === 'examDetailsUrl' ? 'w-20 md:w-24 text-center' : '',
                 ]"
               >
                 <Skeleton

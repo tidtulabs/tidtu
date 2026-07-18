@@ -1,14 +1,14 @@
 <script lang="ts" setup>
+import type { ToasterProps } from "vue-sonner";
+
 import {
   IconCircleCheck,
   IconInfoCircle,
-  IconAlertTriangle,
-  IconCircleX,
   IconLoader2,
+  IconOctagon,
+  IconAlertTriangle,
   IconX,
 } from "@tabler/icons-vue";
-
-import type { ToasterProps } from "vue-sonner";
 import { reactiveOmit } from "@vueuse/core";
 import { Toaster as Sonner } from "vue-sonner";
 import { cn } from "@/lib/utils";
@@ -50,7 +50,7 @@ const delegatedProps = reactiveOmit(props, "class", "toastOptions");
       <IconAlertTriangle class="size-4" />
     </template>
     <template #error-icon>
-      <IconCircleX class="size-4" />
+      <IconOctagon class="size-4" />
     </template>
     <template #loading-icon>
       <div>
