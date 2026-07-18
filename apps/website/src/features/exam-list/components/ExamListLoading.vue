@@ -2,7 +2,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 </script>
 <template>
-  <div class="flex-1 flex flex-col px-1">
+  <div class="flex-1 flex flex-col px-2">
     <div
       class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 w-full border-b border-border/60"
     >

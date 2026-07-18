@@ -1,5 +1,5 @@
 import { ref, onMounted, onUnmounted } from "vue";
-import { useSessionStorage, useMediaQuery } from "@vueuse/core";
+import { useLocalStorage, useMediaQuery } from "@vueuse/core";
 import type { VisibilityState } from "@tanstack/vue-table";
 
 const COMPACT_TABLE_QUERY = "(max-width: 1023px)";
@@ -15,9 +15,12 @@ export function useExamListVisibility() {
     page: true,
   });
 
-  const showUploadDateOnMobile = useSessionStorage("examlist:showUploadDateOnMobile", false);
-  const showPageOnMobile = useSessionStorage("examlist:showPageOnMobile", false);
-  const showPagination = useSessionStorage("examlist:showPagination", isDesktop.value);
+  const showUploadDateOnMobile = useLocalStorage(
+    "examlist:showUploadDateOnMobile",
+    isDesktop.value,
+  );
+  const showPageOnMobile = useLocalStorage("examlist:showPageOnMobile", isDesktop.value);
+  const showPagination = useLocalStorage("examlist:showPagination", isDesktop.value);
 
   function toggleUploadDate(checked: boolean) {
     showUploadDateOnMobile.value = checked;

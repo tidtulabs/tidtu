@@ -36,7 +36,7 @@ function onSearchFocus() {
 
 <template>
   <div
-    class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-1 bg-background relative md:border-b-0 before:absolute before:content-[''] before:left-1 before:right-1 before:bottom-0 before:h-px before:bg-border md:before:hidden"
+    class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-2 bg-background relative md:border-b-0 before:absolute before:content-[''] before:left-2 before:right-2 before:bottom-0 before:h-px before:bg-border md:before:hidden"
   >
     <div class="relative w-full md:max-w-md min-w-0">
       <Input

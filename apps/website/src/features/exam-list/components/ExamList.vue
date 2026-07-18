@@ -214,7 +214,7 @@ watch(
     />
 
     <div
-      class="flex flex-col gap-4 w-full min-w-0 md:min-h-0 md:flex-1 px-1 pt-4 md:pt-1 pb-4 md:pb-6"
+      class="flex flex-col gap-4 w-full min-w-0 md:min-h-0 md:flex-1 px-2 pt-4 md:pt-1 pb-4 md:pb-6"
     >
       <ExamListTable
         :table="table"
