@@ -4,15 +4,15 @@ import NavBarView from "./NavBarView.vue";
 </script>
 <template>
   <div
-    class="container flex-1 md:grid md:grid-cols-[240px_minmax(0,1fr)] md:gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12 mx-auto"
+    class="mx-auto flex-1 w-full min-h-0 min-w-0 px-0 sm:px-2 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[260px_minmax(0,1fr)]"
   >
     <aside class="hidden md:block border-r border-border/60">
-      <div class="sticky top-[57px] py-6 lg:py-8 pr-5">
+      <div class="sticky top-[57px] py-6 lg:py-8 pr-4">
         <NavBarView />
       </div>
     </aside>
-    <main class="min-w-0">
-      <div class="w-full lg:py-8 py-6 pb-2">
+    <main class="min-h-0 min-w-0 w-full">
+      <div class="w-full min-h-0 min-w-0 py-1 flex flex-col">
         <RouterView />
       </div>
     </main>

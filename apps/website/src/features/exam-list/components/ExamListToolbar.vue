@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { IconAdjustmentsHorizontal, IconX } from "@tabler/icons-vue";
+import {
+  IconAdjustmentsHorizontal,
+  IconLayoutListFilled,
+  IconListNumbers,
+  IconX,
+} from "@tabler/icons-vue";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -13,6 +18,7 @@ defineProps<{
   paginationCount: number;
   showUploadDate: boolean;
   showPage: boolean;
+  showPagination: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -20,6 +26,7 @@ const emit = defineEmits<{
   "toggle:loadAll": [value: boolean];
   "toggle:uploadDate": [value: boolean];
   "toggle:page": [value: boolean];
+  "toggle:pagination": [value: boolean];
 }>();
 
 function onSearchFocus() {
@@ -29,7 +36,7 @@ function onSearchFocus() {
 
 <template>
   <div
-    class="sticky top-[56px] z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full border-b border-border/60"
+    class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-1 bg-background relative md:border-b-0 before:absolute before:content-[''] before:left-1 before:right-1 before:bottom-0 before:h-px before:bg-border md:before:hidden"
   >
     <div class="relative w-full md:max-w-md min-w-0">
       <Input
@@ -71,7 +78,9 @@ function onSearchFocus() {
       </button>
     </div>
 
-    <div class="flex items-center justify-between md:justify-end gap-4 text-sm w-full md:w-auto">
+    <div
+      class="flex items-center justify-between md:justify-end gap-4 text-sm w-full md:w-auto shrink-0"
+    >
       <div class="flex items-center gap-3">
         <TooltipProvider>
           <Tooltip>
@@ -114,52 +123,65 @@ function onSearchFocus() {
                 : 'border-border text-muted-foreground'
             "
           >
-            <span>Đã đồng bộ {{ paginationCount }} trang</span>
+            <span class="lg:hidden">{{ paginationCount }} tr</span>
+            <span class="hidden lg:inline">Đã đồng bộ {{ paginationCount }} trang</span>
           </span>
         </div>
       </div>
 
-      <Popover>
-        <PopoverTrigger as-child>
-          <Button
-            variant="outline"
-            size="icon"
-            class="h-9 w-9 rounded-md border border-border bg-background hover:bg-muted shrink-0"
-            aria-label="Cấu hình hiển thị"
-          >
-            <IconAdjustmentsHorizontal class="w-4 h-4 text-muted-foreground" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent class="w-48 p-3" align="end">
-          <div class="space-y-3">
-            <h4 class="font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
-              Cấu hình hiển thị
-            </h4>
-            <div class="flex items-center justify-between gap-2">
-              <Label for="toggle-date" class="text-xs font-medium text-foreground cursor-pointer"
-                >Ngày tải lên</Label
-              >
-              <Switch
-                id="toggle-date"
-                class="scale-75 origin-right"
-                :model-value="showUploadDate"
-                @update:model-value="emit('toggle:uploadDate', $event)"
-              />
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-muted shrink-0 text-muted-foreground transition-colors"
+          aria-label="Bật/tắt phân trang"
+          @click="emit('toggle:pagination', !showPagination)"
+        >
+          <IconListNumbers v-if="showPagination" class="w-4 h-4" />
+          <IconLayoutListFilled v-else class="w-4 h-4" />
+        </button>
+
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button
+              variant="outline"
+              size="icon"
+              class="h-9 w-9 rounded-md border border-border bg-background hover:bg-muted shrink-0"
+              aria-label="Cấu hình hiển thị"
+            >
+              <IconAdjustmentsHorizontal class="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-48 p-3" align="end">
+            <div class="space-y-3">
+              <h4 class="font-bold text-[10px] uppercase tracking-wider text-muted-foreground">
+                Cấu hình hiển thị
+              </h4>
+              <div class="flex items-center justify-between gap-2">
+                <Label for="toggle-date" class="text-xs font-medium text-foreground cursor-pointer"
+                  >Ngày tải lên</Label
+                >
+                <Switch
+                  id="toggle-date"
+                  class="scale-75 origin-right"
+                  :model-value="showUploadDate"
+                  @update:model-value="emit('toggle:uploadDate', $event)"
+                />
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <Label for="toggle-page" class="text-xs font-medium text-foreground cursor-pointer"
+                  >Số trang</Label
+                >
+                <Switch
+                  id="toggle-page"
+                  class="scale-75 origin-right"
+                  :model-value="showPage"
+                  @update:model-value="emit('toggle:page', $event)"
+                />
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-2">
-              <Label for="toggle-page" class="text-xs font-medium text-foreground cursor-pointer"
-                >Số trang</Label
-              >
-              <Switch
-                id="toggle-page"
-                class="scale-75 origin-right"
-                :model-value="showPage"
-                @update:model-value="emit('toggle:page', $event)"
-              />
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   </div>
 </template>

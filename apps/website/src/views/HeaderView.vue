@@ -32,9 +32,9 @@ const open = ref(false);
     </RouterLink>
     <div class="flex gap-2 items-center">
       <h3
-        class="text-sm font-medium bg-clip-text text-transparent hidden sm:block bg-gradient-to-r from-rose-500 to-indigo-600"
+        class="text-xs sm:text-sm font-medium bg-clip-text text-transparent hidden sm:block bg-gradient-to-r from-rose-500 to-indigo-600"
       >
-        by ngtuonghy
+        ngtuonghy
       </h3>
       <a
         href="https://github.com/tidtulabs"

@@ -54,8 +54,7 @@ async function poll() {
 export function useUpdateStatusPoller() {
   function start() {
     if (pollTimer) return;
-    const id = toast.loading("Đã phát hiện dữ liệu mới, đang đồng bộ...");
-    setTimeout(() => toast.dismiss(id), 5000);
+    console.log("Đã phát hiện dữ liệu mới, đang đồng bộ...");
     pollTimer = setTimeout(poll, INTERVAL);
   }
 
