@@ -10,15 +10,15 @@ export async function submitQuickBugReport(context: BugReportContext): Promise<v
   const formData = new FormData();
   formData.append("type", "bug");
   formData.append("quick", "true");
-  formData.append("title", `[Tự động] ${context.message.slice(0, 80)}`);
+  formData.append("title", context.message.slice(0, 80));
   formData.append(
     "content",
     [
-      `Trang: ${context.page || window.location.href}`,
-      `Lỗi: ${context.message}`,
-      context.details ? `Chi tiết: ${context.details}` : "",
-      `Trình duyệt: ${navigator.userAgent.slice(0, 200)}`,
-      `Thời gian: ${new Date().toLocaleString("vi-VN")}`,
+      `**Trang:** ${context.page || window.location.href}`,
+      `**Lỗi:** ${context.message}`,
+      context.details ? `**Chi tiết:**\n\`\`\`json\n${context.details}\n\`\`\`` : "",
+      `**Trình duyệt:** ${navigator.userAgent.slice(0, 200)}`,
+      `**Thời gian:** ${new Date().toLocaleString("vi-VN")}`,
     ]
       .filter(Boolean)
       .join("\n"),
