@@ -54,20 +54,14 @@ export function useExamListData() {
   });
 
   const downloadMutation = useMutation({
-    mutationFn: async ({
-      examRow,
-      examDetailsUrl,
-    }: {
-      examRow: number;
-      examDetailsUrl: string;
-    }) => {
-      const match = /ID=(\d+)/.exec(examDetailsUrl);
+    mutationFn: async ({ exam }: { exam: ExamItem }) => {
+      const match = /ID=(\d+)/.exec(exam.examDetailsUrl);
       if (!match) throw new Error("Không tìm thấy mã đề thi");
       const res = await getExamDownloadLink(match[1]);
-      return { examRow, res };
+      return { examRow: exam.row, res };
     },
-    onMutate: ({ examRow }) => {
-      downloadingRows.value = new Set([...downloadingRows.value, examRow]);
+    onMutate: ({ exam }) => {
+      downloadingRows.value = new Set([...downloadingRows.value, exam.row]);
     },
     onSuccess: ({ res }) => {
       const url = res?.data?.url;
@@ -80,20 +74,36 @@ export function useExamListData() {
         document.body.removeChild(a);
       }
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      const isRateLimit = error instanceof HttpError && error.status === 429;
       const desc =
         error instanceof HttpError
-          ? error.typeError === "NOT_FOUND"
-            ? "Không tìm thấy tệp tin tải xuống"
-            : error.typeError === "TIMEOUT"
-              ? "Kết nối bị timeout, vui lòng thử lại"
-              : "Đã xảy ra lỗi khi tải xuống"
+          ? error.status === 429
+            ? "Quá nhiều yêu cầu, vui lòng thử lại sau"
+            : error.typeError === "NOT_FOUND"
+              ? "Không tìm thấy tệp tin tải xuống"
+              : error.typeError === "TIMEOUT"
+                ? "Kết nối bị timeout, vui lòng thử lại"
+                : error.message || "Đã xảy ra lỗi khi tải xuống"
           : error?.message || "Đã xảy ra lỗi khi tải xuống";
-      errorToast.show("Lỗi", desc);
+
+      const context = JSON.stringify(
+        {
+          error:
+            error instanceof HttpError
+              ? { status: error.status, typeError: error.typeError, message: error.message }
+              : error?.message || String(error),
+          exam: variables?.exam,
+        },
+        null,
+        2,
+      );
+
+      errorToast.show("Lỗi", desc, context, { hideReport: isRateLimit });
     },
-    onSettled: (_data, _error, { examRow }) => {
+    onSettled: (_data, _error, { exam }) => {
       const next = new Set(downloadingRows.value);
-      next.delete(examRow);
+      next.delete(exam.row);
       downloadingRows.value = next;
     },
   });
@@ -121,8 +131,8 @@ export function useExamListData() {
     }
   }
 
-  function downloadFile(examRow: number, examDetailsUrl: string) {
-    downloadMutation.mutate({ examRow, examDetailsUrl });
+  function downloadFile(exam: ExamItem) {
+    downloadMutation.mutate({ exam });
   }
 
   return {
