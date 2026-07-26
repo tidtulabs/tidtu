@@ -15,6 +15,7 @@ import { useExamListData } from "../composables/useExamListData";
 import { useExamListVisibility } from "../composables/useExamListVisibility";
 import { useExamListTour } from "../composables/useExamListTour";
 import type { ExamItem } from "../types/exam";
+import { HttpError } from "../api/httpError";
 import ExamListLoading from "./ExamListLoading.vue";
 import ExamListToolbar from "./ExamListToolbar.vue";
 import ExamListTable from "./ExamListTable.vue";
@@ -200,6 +201,29 @@ watch(
   },
   { immediate: true },
 );
+const bugReportContext = computed(() => {
+  const err = error.value;
+  if (!err) return { message: "Không xác định lỗi", page: currentUrl };
+
+  const message =
+    err instanceof HttpError
+      ? err.message
+      : (err as any).message || "Có lỗi xảy ra khi tải dữ liệu";
+  const details =
+    err instanceof HttpError
+      ? JSON.stringify(
+          { status: err.status, typeError: err.typeError, message: err.message },
+          null,
+          2,
+        )
+      : (err as any).stack || String(err);
+
+  return {
+    message,
+    details,
+    page: currentUrl,
+  };
+});
 </script>
 
 <template>
@@ -214,12 +238,7 @@ watch(
     <template v-else>
       <p class="text-destructive text-3xl">Có lỗi xảy ra</p>
       <p class="text-muted-foreground text-sm">Vui lòng thử lại sau!</p>
-      <QuickBugButton
-        :context="{
-          message: (error as any)?.message || 'Có lỗi xảy ra khi tải dữ liệu',
-          page: currentUrl,
-        }"
-      />
+      <QuickBugButton :context="bugReportContext" />
     </template>
   </div>
   <div v-else class="md:flex-1 flex flex-col gap-0 w-full min-h-0 min-w-0">

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/vue-query";
 import { HttpError } from "./httpError";
 
 export async function getExamDownloadLink(id: string) {
+  // throw new HttpError("Tập tin đề thi bị lỗi cấu trúc dữ liệu", 500, "STRUCT_INVALID");
   const response = await fetch(
     `${import.meta.env.VITE_GATEWAY_SERVICE}/api/v1/pdaotao/exams/${id}/download`,
     { credentials: "include" },

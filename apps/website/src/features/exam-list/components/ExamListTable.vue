@@ -24,7 +24,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  download: [row: number, examDetailsUrl: string];
+  download: [exam: ExamItem];
 }>();
 
 const isCompactTable = useMediaQuery("(max-width: 1023px)");
@@ -96,7 +96,7 @@ const rows = computed(() => props.table.getRowModel().rows);
                     role="button"
                     :aria-label="`Tải xuống ${row.original.examTitle}`"
                     title="Tải xuống đề thi"
-                    @click="emit('download', row.original.row, row.original.examDetailsUrl)"
+                    @click="emit('download', row.original)"
                   >
                     <IconLoader3
                       v-if="downloadingRows.has(row.original.row)"
