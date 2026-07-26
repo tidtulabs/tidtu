@@ -2,6 +2,7 @@ import { scrapingData } from "@utils/cheerio";
 import { normalizeEndpoint } from "@utils/normalize-endpoint";
 
 export type ExamItem = {
+  examId: string; // Mã bài thi
   examTitle: string; // Tiêu đề bài thi
   examDetailsUrl: string; // Ngày tải lên
   uploadDate: string; // Ngày tải lên
@@ -51,6 +52,7 @@ export const getExamList = async (endpoint: string): Promise<GetExamListResult> 
       const td = $(tdElement);
       const match = /(\d+)/.exec(endpoint);
       const examList: ExamItem = {
+        examId: "",
         examTitle: "",
         uploadDate: "",
         examDetailsUrl: "",
@@ -65,7 +67,11 @@ export const getExamList = async (endpoint: string): Promise<GetExamListResult> 
         const t = parseTitleAndTime($(linkElement).text().trim());
         examList.examTitle = t.title || "";
         examList.uploadDate = t.time || "";
-        examList.examDetailsUrl = normalizeEndpoint($(linkElement).attr("href") || "");
+        const rawUrl = normalizeEndpoint($(linkElement).attr("href") || "");
+        examList.examDetailsUrl = rawUrl;
+
+        const idMatch = /ID=(\d+)/.exec(rawUrl);
+        examList.examId = idMatch ? idMatch[1] : "";
       });
 
       const next = td.find("a").last();
