@@ -13,6 +13,7 @@ import {
   getFileHash,
   getFileR2Key,
   getUploadedFiles,
+  getFileId,
 } from "./db";
 
 function md5(buffer: ArrayBuffer | Buffer): string {
@@ -37,6 +38,11 @@ export async function step1_downloadAndUploadR2(msg: ScrapedExam): Promise<{
 
   if (existingHash && existingHash === fileHash) {
     logger.info("Exam content unchanged, skipping upload", { examId: msg.examId });
+    const fileId = await getFileId(d1NodeClient, msg.examId);
+    if (fileId) {
+      await insertExamMetadata(d1NodeClient, fileId, msg);
+    }
+    await updateFileStatus(d1NodeClient, msg.examId, "done");
     return null;
   }
 
