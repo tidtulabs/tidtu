@@ -28,6 +28,19 @@ export class D1NodeClient {
     } else if (this.apiToken) {
       this.client = new Cloudflare({ apiToken: this.apiToken });
     }
+
+    const maskedAccount = this.accountId ? `***${this.accountId.slice(-4)}` : "None";
+    const maskedDB = this.databaseId ? `***${this.databaseId.slice(-4)}` : "None";
+    const isDevMode =
+      process.env.NODE_ENV === "dev" || (!this.client && !this.apiToken && !this.apiKey);
+
+    if (isDevMode) {
+      logger.info("[D1 Connection] Initialized D1 Database in LOCAL storage mode (Miniflare)");
+    } else {
+      logger.info(
+        `[D1 Connection] Initialized D1 Database in REMOTE Cloudflare mode (Account: ${maskedAccount}, DB: ${maskedDB})`,
+      );
+    }
   }
 
   public async query<T = any>(sql: string, params: any[] = []): Promise<D1NodeResult<T>> {
@@ -50,10 +63,6 @@ export class D1NodeClient {
         throw err;
       }
     }
-
-    logger.info(
-      `[D1 Connection] Connected to REMOTE Cloudflare D1 Database (Account: ${this.accountId}, DB: ${this.databaseId})`,
-    );
 
     if (this.client) {
       try {
