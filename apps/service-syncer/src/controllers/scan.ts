@@ -1,8 +1,14 @@
 import { Context } from "hono";
+import pLimit from "p-limit";
 import { fetchPageExams, filterNewOrUpdated } from "../services/scan";
 import { ScrapedExam } from "../types";
 import { processExamTask } from "../services/exam";
-import { updateScanStatus, getAllStoredExams, deleteExamRecord } from "../services/db";
+import {
+  updateScanStatus,
+  getAllStoredExams,
+  deleteExamRecord,
+  getStoredExamsCount,
+} from "../services/db";
 import { deleteFromR2Node } from "../lib/r2-node-client";
 import { getKV } from "../lib/cloudflare-kv";
 import { d1NodeClient } from "../lib/d1-node-client";
@@ -87,7 +93,7 @@ export const scanExams = async (c: Context) => {
   try {
     const baseUrl = process.env.PDAOTAO_BASE_URL || "https://pdaotao.duytan.edu.vn";
     const isDeepScan = c.req.query("deep") === "true";
-    const pageLimit = Infinity;
+    const pageLimit = isDeepScan ? Infinity : 3;
 
     await updateScanStatus(db, "updating");
 
@@ -99,7 +105,7 @@ export const scanExams = async (c: Context) => {
     try {
       const KV = await getKV();
 
-      logger.info("Checking cacheStatus before reading exam list...");
+      logger.debug("Checking cacheStatus before reading exam list...");
       const cacheReady = await waitForCacheReady(KV);
 
       if (cacheReady) {
@@ -145,9 +151,26 @@ export const scanExams = async (c: Context) => {
           }
 
           if (isDeepScan) {
-            const newOrUpdated = await filterNewOrUpdated(db, parsedItems);
-            allNewOrUpdated.push(...newOrUpdated);
+            // Deep scan from cache: check all items in batches of 50 to find new/updated exams without early termination
+            const batchSize = 50;
+            for (let i = 0; i < parsedItems.length; i += batchSize) {
+              const batchItems = parsedItems.slice(i, i + batchSize);
+              const batchIds = batchItems.map((item) => item.examId);
+
+              const existingMap = await getExistingExamsBatch(db, batchIds);
+
+              for (const item of batchItems) {
+                const existingDate = existingMap.get(item.examId);
+                const isNewOrUpdated =
+                  existingDate === undefined || item.uploadDate !== existingDate;
+
+                if (isNewOrUpdated) {
+                  allNewOrUpdated.push(item);
+                }
+              }
+            }
           } else {
+            // Quick scan from cache: check in batches of 50 and stop early on the first item that is already up-to-date
             const batchSize = 50;
             let shouldStop = false;
 
@@ -167,7 +190,7 @@ export const scanExams = async (c: Context) => {
                 if (isNewOrUpdated) {
                   allNewOrUpdated.push(item);
                 } else {
-                  logger.info(
+                  logger.debug(
                     "Found already indexed exam, stopping early in quick-scan mode (cache)",
                     { examId: item.examId },
                   );
@@ -178,7 +201,7 @@ export const scanExams = async (c: Context) => {
             }
           }
 
-          reachedEnd = isDeepScan;
+          reachedEnd = isDeepScan || allNewOrUpdated.length > 0;
           isFromCache = true;
           logger.info("Using cached exam list from KV", {
             count: parsedItems.length,
@@ -197,6 +220,7 @@ export const scanExams = async (c: Context) => {
     if (!isFromCache) {
       let pageUrl: string | null = null;
       let pageNum = 1;
+      let isEarlyStopped = false;
 
       while (pageNum <= pageLimit) {
         if (signal.aborted) {
@@ -206,7 +230,6 @@ export const scanExams = async (c: Context) => {
         const { items, nextHref } = await fetchPageExams(baseUrl, pageUrl, pageNum);
 
         if (items.length === 0) {
-          reachedEnd = true;
           break;
         }
 
@@ -215,60 +238,70 @@ export const scanExams = async (c: Context) => {
         }
 
         const newOrUpdatedOnPage = await filterNewOrUpdated(db, items);
-
         allNewOrUpdated.push(...newOrUpdatedOnPage);
 
+        // If quick scan and page contains any already-synced items, stop scraping early
         if (!isDeepScan && newOrUpdatedOnPage.length < items.length) {
           logger.info(
             "Found already indexed exams on this page, stopping early in quick-scan mode",
             { pageNum },
           );
+          isEarlyStopped = true;
           break;
         }
 
         if (!nextHref) {
-          reachedEnd = true;
           break;
         }
         pageUrl = nextHref;
         pageNum++;
       }
+      reachedEnd = !isEarlyStopped;
     }
 
     const toProcess = allNewOrUpdated;
 
-    if (toProcess.length === 0) {
+    // If no files to process and no cleanup needed, return early
+    if (toProcess.length === 0 && !reachedEnd) {
       if (!signal.aborted) {
         await updateScanStatus(db, "ready");
       }
       return c.json({
         success: true,
-        message: "No new or updated files found",
-        foundCount: 0,
+        message: "Database is already up-to-date. No new or updated exams found.",
+        data: {
+          foundCount: 0,
+          totalExamsInDb: await getStoredExamsCount(db),
+          isFromCache,
+        },
       });
     }
 
     (async () => {
       let processedCount = 0;
-      for (const item of toProcess) {
-        if (signal.aborted) {
-          logger.info("Background scan aborted by a newer request");
-          return;
-        }
-        try {
-          await processExamTask(item);
-          processedCount++;
-          // Force garbage collection if available to maximize free RAM
-          if (global.gc) {
-            global.gc();
+      const concurrency = Number(process.env.SCAN_CONCURRENCY) || 1;
+      const limit = pLimit(concurrency);
+
+      const tasks = toProcess.map((item) =>
+        limit(async () => {
+          if (signal.aborted) return;
+          try {
+            await processExamTask(item);
+            processedCount++;
+            if (global.gc) {
+              global.gc();
+            }
+          } catch (err: any) {
+            logger.error("Error processing background exam task", {
+              examId: item.examId,
+              error: err,
+            });
           }
-        } catch (err: any) {
-          logger.error("Error processing background exam task", {
-            examId: item.examId,
-            error: err,
-          });
-        }
-      }
+        }),
+      );
+
+      await Promise.all(tasks);
+
       if (!signal.aborted) {
         // Cleanup deleted exams only after all new/updated exams are successfully processed
         if (reachedEnd) {
@@ -332,8 +365,12 @@ export const scanExams = async (c: Context) => {
 
     return c.json({
       success: true,
-      message: `Scanning initiated. Processing ${toProcess.length} new/updated files in the background sequentially.`,
-      foundCount: toProcess.length,
+      message: `Scanning initiated successfully. Processing ${toProcess.length} new/updated files in the background.`,
+      data: {
+        foundCount: toProcess.length,
+        totalExamsInDb: await getStoredExamsCount(db),
+        isFromCache,
+      },
     });
   } catch (err: any) {
     if (!signal.aborted) {

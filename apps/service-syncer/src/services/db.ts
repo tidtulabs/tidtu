@@ -33,6 +33,11 @@ export async function getFileR2Key(db: any, examId: string): Promise<string | nu
   return results[0]?.r2_key ?? null;
 }
 
+export async function getFileId(db: any, examId: string): Promise<number | null> {
+  const { results } = await executeQuery(db, `SELECT id FROM files WHERE exam_id = ?`, [examId]);
+  return results[0]?.id ?? null;
+}
+
 export async function insertFile(
   db: any,
   msg: ScrapedExam,
@@ -146,4 +151,12 @@ export async function getAllStoredExams(
 
 export async function deleteExamRecord(db: any, id: number): Promise<void> {
   await executeQuery(db, `DELETE FROM files WHERE id = ?`, [id]);
+}
+
+export async function getStoredExamsCount(db: any): Promise<number> {
+  const { results } = await executeQuery(
+    db,
+    `SELECT COUNT(*) as total FROM files WHERE exam_id != '__SCAN_STATUS__'`,
+  );
+  return results[0]?.total || 0;
 }
