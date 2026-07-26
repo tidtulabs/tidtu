@@ -7,13 +7,13 @@
 		"skipLibCheck": true,
 		"lib": ["ESNext"],
 		"types": [
-			"@cloudflare/workers-types",
-			"@cloudflare/vitest-pool-workers"
+			"@cloudflare/workers-types"
 		],
 		"jsx": "react-jsx",
 		"jsxImportSource": "hono/jsx",
 		"baseUrl": "./src" /* Specify the base directory to resolve non-relative module names. */,
 		"outDir": "./dist" /* Redirect output structure to the directory. */
 	},
-	"include": ["./**/*.ts", "../src/env.d.ts"]
+	"include": ["src/**/*.ts", "worker-configuration.d.ts", "../src/env.d.ts"],
+	"exclude": ["vitest.config.ts", "**/*.spec.ts", "**/*.test.ts"]
 }
