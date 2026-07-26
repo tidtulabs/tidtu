@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, shallowRef, computed, watch } from "vue";
+import { h, ref, shallowRef, computed, watch, nextTick } from "vue";
 import { useDebounceFn, useMediaQuery, useLocalStorage } from "@vueuse/core";
 import {
   useVueTable,
@@ -21,6 +21,19 @@ import ExamListToolbar from "./ExamListToolbar.vue";
 import ExamListTable from "./ExamListTable.vue";
 import ExamListPagination from "./ExamListPagination.vue";
 import QuickBugButton from "@/components/QuickBugButton.vue";
+import { useQuickBugReport } from "@/composables/useQuickBugReport";
+import { toast } from "vue-sonner";
+import { IconAlertTriangle } from "@tabler/icons-vue";
+import { useTurnstile } from "@/composables/useTurnstile";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 declare module "@tanstack/vue-table" {
   interface FilterFns {
@@ -53,6 +66,7 @@ const {
   downloadingRows,
   fetchMore,
   downloadFile,
+  canSync,
 } = useExamListData();
 
 const {
@@ -202,6 +216,14 @@ watch(
   { immediate: true },
 );
 const bugReportContext = computed(() => {
+  if (!canSync.value) {
+    return {
+      message: "Không thể kết nối đến máy chủ Đào tạo (DTU)",
+      details:
+        "Người dùng báo lỗi do gặp cảnh báo gián đoạn kết nối tới máy chủ Đào tạo (https://pdaotao.duytan.edu.vn/EXAM_LIST). Hệ thống đã tự chuyển sang dùng dữ liệu dự phòng.",
+      page: currentUrl,
+    };
+  }
   const err = error.value;
   if (!err) return { message: "Không xác định lỗi", page: currentUrl };
 
@@ -224,6 +246,59 @@ const bugReportContext = computed(() => {
     page: currentUrl,
   };
 });
+
+const { report: sendBugReport, isSending: isSendingBug } = useQuickBugReport();
+const isReportDialogOpen = ref(false);
+const {
+  turnstileContainer,
+  turnstileToken,
+  render: renderTurnstile,
+  reset: resetTurnstile,
+  remove: removeTurnstile,
+} = useTurnstile();
+const lastReportTime = useLocalStorage("examlist:lastReportTime", 0);
+
+async function handleReportBug() {
+  const now = Date.now();
+  const COOLDOWN = 3600000; // 1 hour in ms
+  if (now - lastReportTime.value < COOLDOWN) {
+    const waitMin = Math.ceil((COOLDOWN - (now - lastReportTime.value)) / 60000);
+    toast.warning("Bạn đã gửi báo cáo này rồi", {
+      description: `Vui lòng thử lại sau ${waitMin} phút.`,
+    });
+    return;
+  }
+
+  isReportDialogOpen.value = true;
+  await nextTick();
+  renderTurnstile();
+}
+
+async function submitBugWithVerification() {
+  if (!turnstileToken.value) {
+    toast.warning("Xác minh chưa hoàn thành", {
+      description: "Vui lòng hoàn thành xác minh bảo mật.",
+    });
+    return;
+  }
+
+  try {
+    const context = {
+      ...bugReportContext.value,
+      turnstileToken: turnstileToken.value,
+    };
+    const success = await sendBugReport(context);
+    if (success) {
+      lastReportTime.value = Date.now();
+      isReportDialogOpen.value = false;
+      removeTurnstile();
+    } else {
+      resetTurnstile();
+    }
+  } catch {
+    resetTurnstile();
+  }
+}
 </script>
 
 <template>
@@ -242,6 +317,38 @@ const bugReportContext = computed(() => {
     </template>
   </div>
   <div v-else class="md:flex-1 flex flex-col gap-0 w-full min-h-0 min-w-0">
+    <div
+      v-if="!canSync"
+      class="mx-2 mt-2 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs sm:text-sm flex items-start sm:items-center gap-3 animate-pulse-subtle shrink-0"
+    >
+      <IconAlertTriangle
+        class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0"
+      />
+      <div class="flex-1 leading-normal text-xs sm:text-sm">
+        <span class="font-semibold block sm:inline">Máy chủ Đào tạo gián đoạn:</span>
+        <span class="opacity-90">
+          Đang hiển thị dữ liệu dự phòng. Bạn có thể xem trực tiếp tại trang
+        </span>
+        <a
+          href="https://pdaotao.duytan.edu.vn/EXAM_LIST"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100 font-semibold transition-colors whitespace-nowrap"
+          >Đào tạo Duy Tân</a
+        >
+        <span class="opacity-90"> hoặc </span>
+        <button
+          type="button"
+          @click="handleReportBug"
+          :disabled="isSendingBug"
+          class="underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100 font-semibold transition-colors whitespace-nowrap cursor-pointer"
+        >
+          {{ isSendingBug ? "đang gửi..." : "báo lỗi hệ thống" }}
+        </button>
+        <span class="opacity-90"> nếu app gặp sự cố.</span>
+      </div>
+    </div>
+
     <ExamListToolbar
       class="shrink-0"
       :search="searchInput"
@@ -278,4 +385,28 @@ const bugReportContext = computed(() => {
       :show-pagination="showPagination"
     />
   </div>
+
+  <Dialog v-model:open="isReportDialogOpen">
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Xác minh bảo mật</DialogTitle>
+        <DialogDescription>
+          Vui lòng hoàn thành xác minh Cloudflare Turnstile để gửi báo cáo lỗi.
+        </DialogDescription>
+      </DialogHeader>
+      <div class="flex items-center justify-center py-4">
+        <div ref="turnstileContainer"></div>
+      </div>
+      <DialogFooter class="sm:justify-end gap-2">
+        <Button type="button" variant="outline" @click="isReportDialogOpen = false"> Hủy </Button>
+        <Button
+          type="button"
+          :disabled="!turnstileToken || isSendingBug"
+          @click="submitBugWithVerification"
+        >
+          {{ isSendingBug ? "Đang gửi..." : "Xác nhận gửi" }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

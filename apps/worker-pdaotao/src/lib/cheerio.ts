@@ -11,7 +11,7 @@ type ScrapingResult = {
 const scrapingData = async (endPoint: string): Promise<ScrapingResult> => {
   try {
     const response = await fetch(`${BASE_URL}/${endPoint}`, {
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {

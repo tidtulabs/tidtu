@@ -11,6 +11,7 @@ declare global {
           callback: (token: string) => void;
           "error-callback"?: (error: any) => void;
           theme?: "light" | "dark" | "auto";
+          size?: "normal" | "compact" | "invisible";
         },
       ) => string;
       remove: (widgetId: string) => void;
@@ -46,12 +47,14 @@ export function useTurnstile(
         turnstileToken.value = "";
       }
       try {
+        const isCompact = typeof window !== "undefined" && window.innerWidth < 380;
         turnstileWidgetId = window.turnstile.render(turnstileContainer.value, {
           sitekey,
           callback: (token: string) => {
             turnstileToken.value = token;
           },
           theme: getTheme(),
+          size: isCompact ? "compact" : "normal",
         });
       } catch (error) {
         console.error("Failed to render Cloudflare Turnstile:", error);

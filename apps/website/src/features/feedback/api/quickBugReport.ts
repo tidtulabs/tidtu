@@ -4,12 +4,16 @@ export interface BugReportContext {
   message: string;
   page?: string;
   details?: string;
+  turnstileToken?: string;
 }
 
 export async function submitQuickBugReport(context: BugReportContext): Promise<void> {
   const formData = new FormData();
   formData.append("type", "bug");
   formData.append("quick", "true");
+  if (context.turnstileToken) {
+    formData.append("turnstileToken", context.turnstileToken);
+  }
   formData.append("title", context.message.slice(0, 80));
   formData.append(
     "content",
