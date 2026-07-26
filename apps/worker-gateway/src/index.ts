@@ -17,9 +17,37 @@ app.use("*", async (c, next) => {
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposeHeaders: ["Content-Length", "X-Gateway-Handled-By"],
+    exposeHeaders: [
+      "Content-Length",
+      "Content-Type",
+      "Content-Disposition",
+      "X-Gateway-Handled-By",
+    ],
   });
   return corsMiddlewareHandler(c, next);
+});
+
+app.use("/api/v1/pdaotao/exams/*/download", async (c, next) => {
+  if (c.req.method === "OPTIONS") return next();
+
+  const referer = c.req.header("Referer") || "";
+  const origin = c.req.header("Origin") || "";
+  const allowedOrigin = c.env.CORS_ORIGIN || "https://tidtu.pages.dev";
+
+  const isDev = c.env.NODE_ENV === "dev";
+  const isValidSource =
+    referer.startsWith(allowedOrigin) ||
+    origin === allowedOrigin ||
+    (isDev && (referer.includes("localhost") || origin.includes("localhost")));
+
+  if (!isValidSource && !isDev) {
+    return c.json(
+      { error: "Forbidden", message: "Chỉ được phép xem và tải xuống từ trang web chính thức." },
+      403,
+    );
+  }
+
+  await next();
 });
 
 app.use("*", async (c, next) => {

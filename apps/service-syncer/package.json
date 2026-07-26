@@ -1,0 +1,36 @@
+{
+  "name": "service-syncer",
+  "version": "0.0.1",
+  "main": "./dist/server.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "pnpm run clean && tsc && tsc-alias",
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "db:init": "wrangler d1 execute DB --local --config=../worker-pdaotao/wrangler.toml --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute DB --remote --config=../worker-pdaotao/wrangler.toml --file=./schema.sql"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.718.0",
+    "@hono/node-server": "^1.13.7",
+    "cheerio": "^1.0.0",
+    "cloudflare": "^3.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "hono": "^4.6.15",
+    "mammoth": "^1.9.0",
+    "winston": "^3.19.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260714.1",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^22.10.2",
+    "miniflare": "^4.20260710.0",
+    "rimraf": "^6.0.1",
+    "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2"
+  }
+}

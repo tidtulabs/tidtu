@@ -1,0 +1,8 @@
+name = "service-syncer"
+main = "src/server.ts"
+compatibility_date = "2024-12-30"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tidtu-db"
+database_id = "8b869b74-4a7d-4804-ad82-c407e2edfeb0"
