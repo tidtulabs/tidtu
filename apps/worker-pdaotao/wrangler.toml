@@ -25,7 +25,6 @@ enabled = true
 CORS_ORIGIN = "https://tidtu.pages.dev"
 CACHE_SERVICE_API = "https://cache-service-p6ko.onrender.com"
 SYNCER_SERVICE_API = "https://service-syncer.onrender.com"
-SYNCER_API_TOKEN = "ngtuonghy"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#workers-ai
@@ -116,7 +115,6 @@ name = "worker-pdaotao-2"
 CORS_ORIGIN = "https://tidtu.pages.dev"
 CACHE_SERVICE_API = "https://cache-service-p6ko.onrender.com"
 SYNCER_SERVICE_API = "https://service-syncer.onrender.com"
-SYNCER_API_TOKEN = "ngtuonghy"
 
 [[env.clone2.kv_namespaces]]
 binding = "CACHE_TIDTU"
@@ -141,7 +139,6 @@ name = "worker-pdaotao-3"
 CORS_ORIGIN = "https://tidtu.pages.dev"
 CACHE_SERVICE_API = "https://cache-service-p6ko.onrender.com"
 SYNCER_SERVICE_API = "https://service-syncer.onrender.com"
-SYNCER_API_TOKEN = "ngtuonghy"
 
 [[env.clone3.kv_namespaces]]
 binding = "CACHE_TIDTU"
