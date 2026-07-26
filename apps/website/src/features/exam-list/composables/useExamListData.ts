@@ -12,6 +12,7 @@ export function useExamListData() {
   const exams = ref<ExamItem[]>([]);
   const examsFrequency = ref<ExamItem[]>([]);
   const examsTotal = ref<ExamItem[]>([]);
+  const canSync = ref<boolean>(true);
   const fetchingFlag = ref({ isAuto: false, isFetching: false });
   const downloadingRows = ref<Set<number>>(new Set());
 
@@ -36,7 +37,10 @@ export function useExamListData() {
       if (data?.success && data.data) {
         exams.value = data.data;
         examsFrequency.value = data.data;
-        if (!data.meta.isUpdated) {
+        if (data.meta && "canSync" in data.meta) {
+          canSync.value = data.meta.canSync;
+        }
+        if (!data.meta.isUpdated && canSync.value) {
           poller.start();
         }
       }
@@ -154,5 +158,6 @@ export function useExamListData() {
     downloadingRows,
     fetchMore,
     downloadFile,
+    canSync,
   };
 }

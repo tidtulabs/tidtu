@@ -21,5 +21,6 @@ export type FetchResponse = {
     currentPagination: string;
     nextPagination: string;
     isUpdated: boolean;
+    canSync: boolean;
   };
 };

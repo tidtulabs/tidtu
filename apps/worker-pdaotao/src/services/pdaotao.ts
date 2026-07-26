@@ -23,7 +23,9 @@ export const fetchFirstExamRow = async () => {
   const scraping = await scrapingData("EXAM_LIST");
 
   if (!scraping.success || !scraping.data) {
-    throw new Error(scraping.message);
+    const error = new Error(scraping.message) as any;
+    error.errorType = scraping.errorType;
+    throw error;
   }
 
   const $ = scraping.data;
@@ -53,18 +55,19 @@ type ExamListResult = {
     currentPagination: string;
     nextPagination: string;
     isUpdated: boolean;
+    canSync: boolean;
   };
 };
 
 export const fetchExamList = async (c: Context) => {
+  const scope = c.req.query("scope");
   try {
-    const scope = c.req.query("scope");
     if (scope === "all") {
       const cachedExamList = await c.env.CACHE_TIDTU.get("examList:total");
       const cachedData: ExamListResult = cachedExamList ? JSON.parse(cachedExamList) : null;
       return {
         data: cachedData?.data || [],
-        meta: { ...cachedData?.meta, isUpdated: true },
+        meta: { ...cachedData?.meta, isUpdated: true, canSync: true },
       };
     }
     const examData = await fetchFirstExamRow();
@@ -78,7 +81,7 @@ export const fetchExamList = async (c: Context) => {
     ) {
       return {
         data: cachedData?.data || [],
-        meta: { ...cachedData?.meta, isUpdated: true },
+        meta: { ...cachedData?.meta, isUpdated: true, canSync: true },
       };
     }
     const cacheStatusRaw = await c.env.CACHE_TIDTU.get("cacheStatus");
@@ -102,12 +105,24 @@ export const fetchExamList = async (c: Context) => {
     }
     return {
       data: cachedData?.data || [],
-      meta: { ...cachedData?.meta, isUpdated: false },
+      meta: { ...cachedData?.meta, isUpdated: false, canSync: true },
     };
   } catch (error: any) {
-    // logger.error(error.message);
-    // console.log("error", error);
-    return null;
+    try {
+      const cacheKey = scope === "all" ? "examList:total" : "examList:frequency";
+      const cachedExamList = await c.env.CACHE_TIDTU.get(cacheKey);
+      const cachedData: ExamListResult = cachedExamList ? JSON.parse(cachedExamList) : null;
+      return {
+        data: cachedData?.data || [],
+        meta: {
+          ...cachedData?.meta,
+          isUpdated: true,
+          canSync: false,
+        },
+      };
+    } catch {
+      return null;
+    }
   }
 };
 
