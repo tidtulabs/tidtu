@@ -208,11 +208,13 @@ pnpm format
 ## Roadmap
 
 - [x] Tra cứu lịch thi
-- [x] Cloudflare Workers API Gateway
-- [x] Cache với Cloudflare KV
-- [ ] Thông báo có đã có lịch
-- [ ] Multi-language Support
-  - [ ] English
+- [x] API Gateway với Cloudflare Workers
+- [x] Bộ nhớ đệm với Cloudflare KV
+- [x] Sao lưu tệp
+- [ ] Phân tích tệp
+- [ ] Thông báo khi có lịch thi
+- [ ] Hỗ trợ đa ngôn ngữ
+  - [ ] Tiếng Anh
 
 Xem [open issues](https://github.com/tidtulabs/tidtu/issues) để biết thêm các tính năng đang đề xuất và lỗi đã biết.
 
