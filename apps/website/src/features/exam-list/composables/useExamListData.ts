@@ -68,10 +68,19 @@ export function useExamListData() {
       if (url && res?.success) {
         const a = document.createElement("a");
         a.href = url;
-        a.download = "";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+
+        if (res?.data?.isBlob) {
+          a.download = res?.data?.filename || "download";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        } else {
+          // Trigger silent download directly on the current tab for external source URLs
+          const trigger = document.createElement("a");
+          trigger.href = url;
+          trigger.click();
+        }
       }
     },
     onError: (error, variables) => {

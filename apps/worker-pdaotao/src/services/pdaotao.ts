@@ -87,8 +87,18 @@ export const fetchExamList = async (c: Context) => {
       cacheStatus?.status === "updating" && Date.now() - cacheStatus.startedAt < 300000;
     // console.log("cacheStatus", cacheStatus);
     if (!isUpdating) {
-      const url = `${c.env.CACHE_SERVICE_API}/api/v1/pdaotao/cache/exams`;
-      c.executionCtx.waitUntil(fetch(url, { method: "POST" }).catch(() => {}));
+      const cacheUrl = `${c.env.CACHE_SERVICE_API}/api/v1/pdaotao/cache/exams`;
+      c.executionCtx.waitUntil(fetch(cacheUrl, { method: "POST" }).catch(() => {}));
+
+      const scanUrl = `${c.env.SYNCER_SERVICE_API}/api/v1/pdaotao/scan`;
+      c.executionCtx.waitUntil(
+        fetch(scanUrl, {
+          method: "POST",
+          headers: c.env.SYNCER_API_TOKEN
+            ? { Authorization: `Bearer ${c.env.SYNCER_API_TOKEN}` }
+            : {},
+        }).catch(() => {}),
+      );
     }
     return {
       data: cachedData?.data || [],

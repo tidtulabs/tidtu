@@ -1,2 +1,4 @@
 CACHE_SERVICE_API=http://localhost:3000
+SYNCER_SERVICE_API=http://localhost:4010
+SYNCER_API_TOKEN=ngtuonghy
 NODE_ENV=dev
