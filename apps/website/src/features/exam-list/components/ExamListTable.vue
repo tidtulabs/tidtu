@@ -105,8 +105,8 @@ watch(
               <div class="w-5 flex justify-center shrink-0">
                 <IconSparkles
                   v-if="row.original.isNew"
-                  class="w-4 h-4 text-amber-500 stroke-1.5"
-                  title="Bài thi mới"
+                  class="w-4 h-4 text-amber-500 stroke-1.5 animate-pulse"
+                  title="Bài thi mới cập nhật"
                 />
               </div>
 
@@ -311,7 +311,8 @@ watch(
                       </span>
                       <IconSparkles
                         v-if="row.original.isNew"
-                        class="w-4 h-4 text-yellow-500 stroke-1.5 shrink-0 mt-0.5"
+                        class="w-4 h-4 text-amber-500 stroke-1.5 animate-pulse shrink-0 mt-0.5"
+                        title="Bài thi mới cập nhật"
                       />
                     </div>
                   </template>
