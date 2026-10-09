@@ -30,15 +30,11 @@ const emit = defineEmits<{
   "toggle:pagination": [value: boolean];
   tour: [];
 }>();
-
-function onSearchFocus() {
-  window.scrollTo(0, 0);
-}
 </script>
 
 <template>
   <div
-    class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-2 bg-background relative md:border-b-0 before:absolute before:content-[''] before:left-2 before:right-2 before:bottom-0 before:h-px before:bg-border md:before:hidden"
+    class="sticky top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 px-2 bg-background relative before:absolute before:content-[''] before:left-0 before:right-0 before:bottom-0 before:h-px before:bg-border"
   >
     <div class="relative w-full md:max-w-md min-w-0" data-tour="search-input">
       <Input
@@ -51,7 +47,6 @@ function onSearchFocus() {
         class="pl-9 pr-8 w-full bg-background h-9 text-sm"
         :model-value="search"
         @update:model-value="emit('update:search', $event as string)"
-        @focus="onSearchFocus"
         @keydown.enter="($event.target as HTMLInputElement)?.blur()"
       />
       <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">

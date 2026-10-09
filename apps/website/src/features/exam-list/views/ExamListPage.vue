@@ -14,7 +14,7 @@ useHead({
 });
 </script>
 <template>
-  <div class="flex md:flex-1 md:min-h-0 w-full flex-col md:overflow-hidden">
+  <div class="flex flex-col flex-1 min-h-0 w-full">
     <h1 class="sr-only">Danh sách thi</h1>
     <ExamList />
   </div>

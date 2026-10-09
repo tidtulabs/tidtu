@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 <template>
   <div class="flex-1 flex flex-col px-2">
     <div
-      class="max-md:sticky max-md:top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 w-full border-b border-border/60"
+      class="sticky top-14 z-30 flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 w-full border-b border-border/60 bg-background"
     >
       <Skeleton class="w-full md:max-w-md h-9" />
       <div class="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
         <Skeleton class="w-9 h-9 rounded-md" />
       </div>
     </div>
-    <div class="pt-4 pb-4 md:pb-6 flex flex-col gap-6 w-full flex-1">
+    <div class="pt-3 pb-4 md:pb-6 flex flex-col gap-6 w-full flex-1">
       <div v-for="index in 7" :key="index" class="mb-1">
         <Skeleton class="h-12 w-full" />
       </div>
