@@ -316,7 +316,7 @@ async function submitBugWithVerification() {
       <QuickBugButton :context="bugReportContext" />
     </template>
   </div>
-  <div v-else class="md:flex-1 flex flex-col gap-0 w-full min-h-0 min-w-0">
+  <div v-else class="flex flex-col flex-1 gap-0 w-full min-h-0 min-w-0">
     <div
       v-if="!canSync"
       class="mx-2 mt-2 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs sm:text-sm flex items-start sm:items-center gap-3 animate-pulse-subtle shrink-0"
@@ -365,9 +365,7 @@ async function submitBugWithVerification() {
       @tour="startTour"
     />
 
-    <div
-      class="flex flex-col gap-4 w-full min-w-0 md:min-h-0 md:flex-1 px-2 pt-4 md:pt-1 pb-4 md:pb-6"
-    >
+    <div class="flex flex-col gap-4 w-full min-w-0 flex-1 min-h-0 px-2 pt-3 pb-4 md:pb-6">
       <ExamListTable
         :table="table"
         :is-fetching-all="fetchingFlag.isFetching"
@@ -380,7 +378,7 @@ async function submitBugWithVerification() {
 
     <ExamListPagination
       v-if="showPagination"
-      class="sticky bottom-0 z-10 bg-background/50 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/40 shrink-0"
+      class="sticky bottom-0 z-10 bg-background/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/70 shrink-0"
       :table="table"
       :show-pagination="showPagination"
     />

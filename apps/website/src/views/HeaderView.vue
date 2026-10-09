@@ -34,7 +34,7 @@ const open = ref(false);
       <h3
         class="text-xs sm:text-sm font-medium bg-clip-text text-transparent hidden sm:block bg-gradient-to-r from-rose-500 to-indigo-600"
       >
-        ngtuonghy
+        by ngtuonghy
       </h3>
       <a
         href="https://github.com/tidtulabs"
@@ -51,7 +51,7 @@ const open = ref(false);
         @click="toggleColorMode"
       >
         <IconSunMoon v-if="colorMode === 'auto'" class="w-6 h-6" />
-        <IconSunHigh v-else-if="colorMode === 'light'" class="w-6 h-6 animate-spin-slow" />
+        <IconSunHigh v-else-if="colorMode === 'light'" class="w-6 h-6" />
         <IconMoonStars v-else class="w-6 h-6" />
       </button>
 
