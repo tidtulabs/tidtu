@@ -8,6 +8,7 @@ useHead({
   htmlAttrs: { lang: "vi" },
   meta: [
     { name: "description", content: "Tra cứu và tải đề thi từ hệ thống P. Đào Tạo" },
+    { name: "google-site-verification", content: "JCaXFl-r-9Zsf1bnfUwJJDRtS3SiW3dpKilh9DT2AnI" },
     { name: "robots", content: "index, follow" },
     { property: "og:locale", content: "vi_VN" },
     { property: "og:site_name", content: "TIDTU" },
